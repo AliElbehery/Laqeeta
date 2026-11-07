@@ -19,6 +19,10 @@ public static class ClaimsPrincipalExtensions
             ? id
             : throw new UnauthorizedException("Invalid token.");
 
+    /// <summary>Station of the logged-in employee; throws 403 if the token has none.</summary>
+    public static long GetRequiredStationId(this ClaimsPrincipal user)
+        => user.GetStationId() ?? throw new ForbiddenException("This action requires an employee assigned to a station.");
+
     public static long? GetStationId(this ClaimsPrincipal user)
         => long.TryParse(user.FindFirst(ClaimNames.StationId)?.Value, out var id) ? id : null;
 }

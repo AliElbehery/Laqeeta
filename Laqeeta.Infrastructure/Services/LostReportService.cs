@@ -56,7 +56,9 @@ public class LostReportService(AppDbContext db, IMatchingService matching) : ILo
 
     public async Task CancelAsync(long reportId, long userId, CancellationToken ct = default)
     {
-        var report = await db.LostReports.Include(r => r.Matches)
+        var report = await db.LostReports
+            .Include(r => r.Matches).ThenInclude(m => m.Item)
+            .Include(r => r.Matches).ThenInclude(m => m.Claim)
             .FirstOrDefaultAsync(r => r.ReportId == reportId, ct)
             ?? throw new NotFoundException("Report not found.");
 
@@ -65,8 +67,17 @@ public class LostReportService(AppDbContext db, IMatchingService matching) : ILo
 
         report.Status = LostReportStatus.Closed;
         report.ClosureReason = ClosureReason.CancelledByUser;
-        foreach (var m in report.Matches.Where(m => m.MatchStatus == MatchStatus.Suggested))
+        foreach (var m in report.Matches.Where(m => m.MatchStatus is MatchStatus.Suggested or MatchStatus.Confirmed))
+        {
+            if (m.MatchStatus == MatchStatus.Confirmed)
+            {
+                // release the reserved item and cancel its open claim
+                if (m.Item.ItemStatus == FoundItemStatus.Matched) m.Item.ItemStatus = FoundItemStatus.InStorage;
+                if (m.Claim is { ClaimStatus: ClaimStatus.Pending or ClaimStatus.Verified })
+                    m.Claim.ClaimStatus = ClaimStatus.Rejected;
+            }
             m.MatchStatus = MatchStatus.Rejected;
+        }
 
         await db.SaveChangesAsync(ct);
     }
