@@ -48,6 +48,14 @@ public class ClaimService(AppDbContext db) : IClaimService
         claim.VerificationNotes = dto.Notes;
         claim.ClaimStatus = dto.Approve ? ClaimStatus.Verified : ClaimStatus.Rejected;
 
+        if (!dto.Approve)
+        {
+            // release everything so the item and the report can be matched again
+            claim.Match.MatchStatus = MatchStatus.Rejected;
+            claim.Match.Item.ItemStatus = FoundItemStatus.InStorage;
+            claim.Match.Report.Status = LostReportStatus.Open;
+        }
+
         ServiceHelpers.Notify(db, claim.ClaimedBy, NotificationType.ClaimUpdate,
             dto.Approve ? "Claim approved" : "Claim rejected",
             dto.Approve ? "Your ownership was verified. You can collect your item."
@@ -78,12 +86,38 @@ public class ClaimService(AppDbContext db) : IClaimService
         claim.Match.Report.Status = LostReportStatus.Closed;
         claim.Match.Report.ClosureReason = ClosureReason.Returned;
 
+        // the item is gone: other pending suggestions for it are no longer valid
+        var others = await db.PossibleMatches
+            .Where(m => m.ItemId == claim.Match.ItemId && m.MatchId != claim.MatchId
+                        && m.MatchStatus == MatchStatus.Suggested)
+            .ToListAsync(ct);
+        foreach (var o in others) o.MatchStatus = MatchStatus.Rejected;
+
         ServiceHelpers.Notify(db, claim.ClaimedBy, NotificationType.ItemReturned,
             "Item returned", "Your item was handed over. This report is now closed.",
             claim.Match.Report, claim.Match);
 
         await db.SaveChangesAsync(ct);
         return claim;
+    }
+
+    public async Task<IReadOnlyList<OwnershipClaim>> GetMineAsync(long userId, CancellationToken ct = default)
+        => await db.OwnershipClaims.AsNoTracking()
+               .Where(c => c.ClaimedBy == userId)
+               .Include(c => c.Match)
+               .OrderByDescending(c => c.ClaimedAt)
+               .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<OwnershipClaim>> GetForStationAsync(long stationId, ClaimStatus? status = null,
+                                                                        CancellationToken ct = default)
+    {
+        var q = db.OwnershipClaims.AsNoTracking().Where(c => c.Match.Item.CurrentStationId == stationId);
+        if (status is not null) q = q.Where(c => c.ClaimStatus == status);
+
+        return await q.Include(c => c.Match)
+                      .Include(c => c.ClaimedByUser)
+                      .OrderByDescending(c => c.ClaimedAt)
+                      .ToListAsync(ct);
     }
 
     private async Task<OwnershipClaim> LoadClaimAsync(long claimId, CancellationToken ct)

@@ -1,16 +1,31 @@
+using System.ComponentModel.DataAnnotations;
 using Laqeeta.Core.Enums;
 
 namespace Laqeeta.Core.DTOs;
 
 public record CreateLostReportDto(
-    long LineId, string ContactPhone, ItemCategory Category, string Color,
-    DateOnly LostDate, TimeOnly? ApproximateTime, string? Direction, string Description);
+    [Range(1, long.MaxValue)] long LineId,
+    [Required, RegularExpression(@"^\+?[0-9]{8,15}$", ErrorMessage = "Invalid phone number.")] string ContactPhone,
+    [EnumDataType(typeof(ItemCategory))] ItemCategory Category,
+    [Required, StringLength(50)] string Color,
+    DateOnly LostDate,
+    TimeOnly? ApproximateTime,
+    [StringLength(150)] string? Direction,
+    [Required, StringLength(2000)] string Description);
 
 public record CreateFoundItemDto(
-    long FoundStationId, ItemCategory Category, string Color, string Description,
-    string? PrivateIdentifyingDetails, DateTime FoundAt);
+    [Range(1, long.MaxValue)] long FoundStationId,
+    [EnumDataType(typeof(ItemCategory))] ItemCategory Category,
+    [Required, StringLength(50)] string Color,
+    [Required, StringLength(2000)] string Description,
+    [StringLength(2000)] string? PrivateIdentifyingDetails,
+    DateTime FoundAt);
 
-public record VerifyClaimDto(bool Approve, bool IdChecked, bool SecretAnswerPassed, string? Notes);
+public record VerifyClaimDto(bool Approve, bool IdChecked, bool SecretAnswerPassed, [StringLength(2000)] string? Notes);
+
+public record SubmitClaimDto([Range(1, long.MaxValue)] long MatchId);
+
+public record TransferItemDto([Range(1, long.MaxValue)] long ToStationId);
 
 public record LineDto(long LineId, string LineName);
 

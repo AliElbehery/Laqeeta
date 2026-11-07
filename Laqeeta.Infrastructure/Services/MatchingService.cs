@@ -106,6 +106,19 @@ public class MatchingService(AppDbContext db) : IMatchingService
         return matches;
     }
 
+    public async Task<IReadOnlyList<PossibleMatch>> GetForStationAsync(long stationId, MatchStatus? status = null,
+                                                                       CancellationToken ct = default)
+    {
+        var q = db.PossibleMatches.AsNoTracking().Where(m => m.Item.CurrentStationId == stationId);
+        if (status is not null) q = q.Where(m => m.MatchStatus == status);
+
+        return await q.Include(m => m.Report).ThenInclude(r => r.Line)
+                      .Include(m => m.Item).ThenInclude(i => i.FoundStation)
+                      .Include(m => m.Item).ThenInclude(i => i.CurrentStation)
+                      .OrderByDescending(m => m.CreatedAt)
+                      .ToListAsync(ct);
+    }
+
     public async Task ConfirmAsync(long matchId, long employeeId, CancellationToken ct = default)
     {
         var employee = await ServiceHelpers.RequireEmployeeAsync(db, employeeId, ct);
@@ -114,6 +127,8 @@ public class MatchingService(AppDbContext db) : IMatchingService
         EnsureCanHandle(employee, match);
         if (match.MatchStatus != MatchStatus.Suggested)
             throw new BusinessRuleException("Only suggested matches can be confirmed.");
+        if (match.Report.Status != LostReportStatus.Open)
+            throw new BusinessRuleException("This report is not open (it already has a confirmed match, or it is closed).");
         if (match.Item.ItemStatus != FoundItemStatus.InStorage)
             throw new BusinessRuleException("The item is no longer in storage.");
 
@@ -121,12 +136,8 @@ public class MatchingService(AppDbContext db) : IMatchingService
         match.Item.ItemStatus = FoundItemStatus.Matched;
         match.Report.Status = LostReportStatus.Matched;
 
-        // other passengers' suggestions for the same item are no longer valid
-        var others = await db.PossibleMatches
-            .Where(m => m.ItemId == match.ItemId && m.MatchId != match.MatchId
-                        && m.MatchStatus == MatchStatus.Suggested)
-            .ToListAsync(ct);
-        foreach (var o in others) o.MatchStatus = MatchStatus.Rejected;
+        // note: other suggestions for the same item/report are kept. They cannot be confirmed while the item
+        // is reserved, and they become usable again if the claim is rejected or the report is cancelled.
 
         ServiceHelpers.Notify(db, match.Report.UserId, NotificationType.ClaimUpdate,
             "Your item is ready to claim",
