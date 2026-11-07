@@ -1,6 +1,17 @@
 @Laqeeta_HostAddress = http://localhost:5270
 
-GET {{Laqeeta_HostAddress}}/weatherforecast/
-Accept: application/json
+### register
+POST {{Laqeeta_HostAddress}}/api/auth/register
+Content-Type: application/json
 
-###
+{ "fullName": "Test User", "username": "test", "email": "test@example.com", "phone": "01000000099", "password": "Passw0rd!" }
+
+### login
+POST {{Laqeeta_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{ "usernameOrEmail": "omar", "password": "Passw0rd!" }
+
+### me (paste the token)
+GET {{Laqeeta_HostAddress}}/api/auth/me
+Authorization: Bearer <token>
