@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<ILostReportService, LostReportService>();
         services.AddScoped<IFoundItemService, FoundItemService>();
         services.AddScoped<IClaimService, ClaimService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }

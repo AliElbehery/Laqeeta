@@ -17,3 +17,15 @@ public class ForbiddenException : Exception
 {
     public ForbiddenException(string message) : base(message) { }
 }
+
+/// <summary>Bad / missing credentials => map to HTTP 401.</summary>
+public class UnauthorizedException : Exception
+{
+    public UnauthorizedException(string message) : base(message) { }
+}
+
+/// <summary>Duplicate resource (username/email taken) => map to HTTP 409.</summary>
+public class ConflictException : Exception
+{
+    public ConflictException(string message) : base(message) { }
+}

@@ -3,7 +3,7 @@ using Laqeeta.Core.Exceptions;
 namespace Laqeeta.Api.Middleware;
 
 /// <summary>Maps Core exceptions to HTTP status codes so controllers stay clean.</summary>
-public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, IHostEnvironment env)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -15,10 +15,12 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         {
             var (status, title) = ex switch
             {
-                NotFoundException     => (StatusCodes.Status404NotFound, "Not found"),
-                ForbiddenException    => (StatusCodes.Status403Forbidden, "Forbidden"),
+                UnauthorizedException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
+                NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+                ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+                ForbiddenException => (StatusCodes.Status403Forbidden, "Forbidden"),
                 BusinessRuleException => (StatusCodes.Status400BadRequest, "Business rule violated"),
-                _                     => (StatusCodes.Status500InternalServerError, "Unexpected error")
+                _ => (StatusCodes.Status500InternalServerError, "Unexpected error")
             };
 
             if (status == StatusCodes.Status500InternalServerError)
@@ -29,7 +31,9 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             {
                 title,
                 status,
-                detail = status == StatusCodes.Status500InternalServerError ? "Something went wrong." : ex.Message
+                detail = status != StatusCodes.Status500InternalServerError ? ex.Message
+                       : env.IsDevelopment() ? ex.ToString()      // dev only: show the real error
+                       : "Something went wrong."
             });
         }
     }
