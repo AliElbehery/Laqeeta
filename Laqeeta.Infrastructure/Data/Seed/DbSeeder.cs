@@ -113,8 +113,9 @@ public static class DbSeeder
         {
             User = omar, Report = report, Match = match,
             Type = NotificationType.MatchFound,
-            Title = "Possible match for your lost wallet",
-            Message = "A similar item was found at Sadat station. Visit the Lost & Found desk to claim it."
+            Title = "Possible match for your lost item",
+            Message = "An item similar to your report was found. Check your matches.",
+            Code = Laqeeta.Core.Localization.NotifCode.MatchFoundForReport
         });
 
         await db.SaveChangesAsync();

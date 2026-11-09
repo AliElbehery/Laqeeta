@@ -9,6 +9,10 @@ public class Notification
     public NotificationType Type { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
+    /// <summary>Translation key (see NotifCode). Null for old rows: Title/Message are shown as stored.</summary>
+    public string? Code { get; set; }
+    /// <summary>Value for {0} in the translated message (e.g. a station name).</summary>
+    public string? Param { get; set; }
     public long? ReportId { get; set; }
     public long? MatchId { get; set; }
     public bool IsRead { get; set; }

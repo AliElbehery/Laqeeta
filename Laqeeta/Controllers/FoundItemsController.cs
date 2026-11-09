@@ -3,6 +3,7 @@ using Laqeeta.Api.Mapping;
 using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +36,7 @@ public class FoundItemsController(IFoundItemService items) : ControllerBase
     {
         var item = await items.GetByIdAsync(id, ct);
         if (item.CurrentStationId != User.GetRequiredStationId())
-            throw new ForbiddenException("The item is held at a different station.");
+            throw new ForbiddenException("The item is held at a different station.", Err.WrongStation);
         return item.ToStaffDto();
     }
 

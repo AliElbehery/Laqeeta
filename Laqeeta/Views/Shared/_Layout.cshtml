@@ -50,6 +50,10 @@
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">@fullName</a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">@L["nav.profile"]</a></li>
+                            @if (isEmp)
+                            {
+                                <li><a class="dropdown-item" asp-controller="Employees" asp-action="Create">@L["nav.addEmployee"]</a></li>
+                            }
                             <li><hr class="dropdown-divider" /></li>
                             <li>
                                 <form asp-controller="Account" asp-action="Logout" method="post">

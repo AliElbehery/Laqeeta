@@ -2,6 +2,7 @@ using Laqeeta.Api.Web.Models;
 using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -57,7 +58,7 @@ public class ItemsController(IFoundItemService items, IStationService stations) 
         {
             var item = await items.GetByIdAsync(id);
             if (item.CurrentStationId != StationId)
-                throw new ForbiddenException("The item is held at a different station.");
+                throw new ForbiddenException("The item is held at a different station.", Err.WrongStation);
 
             ViewData["Stations"] = (await stations.GetStationsAsync(acceptsItems: true))
                 .Where(s => s.StationId != item.CurrentStationId).ToList();
@@ -65,7 +66,7 @@ public class ItemsController(IFoundItemService items, IStationService stations) 
         }
         catch (Exception ex) when (IsDomain(ex))
         {
-            Error(ex.Message);
+            Error(Msg(ex));
             return RedirectToAction(nameof(Index));
         }
     }

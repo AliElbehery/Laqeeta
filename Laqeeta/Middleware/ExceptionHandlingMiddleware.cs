@@ -1,4 +1,5 @@
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 
 namespace Laqeeta.Api.Middleware;
 
@@ -26,12 +27,17 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             if (status == StatusCodes.Status500InternalServerError)
                 logger.LogError(ex, "Unhandled exception");
 
+            // business errors are translated: send "Accept-Language: ar" to get Arabic (default English)
+            var lang = Messages.Normalize(context.Request.Headers.AcceptLanguage.ToString());
+            var domain = ex as DomainException;
+
             context.Response.StatusCode = status;
             await context.Response.WriteAsJsonAsync(new
             {
                 title,
                 status,
-                detail = status != StatusCodes.Status500InternalServerError ? ex.Message
+                code = domain?.Code,
+                detail = domain is not null ? Messages.Error(domain, lang)
                        : env.IsDevelopment() ? ex.ToString()      // dev only: show the real error
                        : "Something went wrong."
             });

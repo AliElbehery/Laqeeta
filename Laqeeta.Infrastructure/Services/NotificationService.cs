@@ -1,5 +1,6 @@
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Models;
 using Laqeeta.Infrastructure.Data;
@@ -34,8 +35,8 @@ public class NotificationService(AppDbContext db) : INotificationService
     public async Task MarkAsReadAsync(long notificationId, long userId, CancellationToken ct = default)
     {
         var n = await db.Notifications.FirstOrDefaultAsync(x => x.NotificationId == notificationId, ct)
-                ?? throw new NotFoundException("Notification not found.");
-        if (n.UserId != userId) throw new ForbiddenException("Not your notification.");
+                ?? throw new NotFoundException("Notification not found.", Err.NotificationNotFound);
+        if (n.UserId != userId) throw new ForbiddenException("Not your notification.", Err.NotYourNotification);
         if (n.IsRead) return;
 
         n.IsRead = true;

@@ -1,6 +1,7 @@
 using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Models;
 using Laqeeta.Infrastructure.Data;
@@ -15,12 +16,12 @@ public class ClaimService(AppDbContext db) : IClaimService
         var match = await db.PossibleMatches
             .Include(m => m.Report).Include(m => m.Claim)
             .FirstOrDefaultAsync(m => m.MatchId == matchId, ct)
-            ?? throw new NotFoundException("Match not found.");
+            ?? throw new NotFoundException("Match not found.", Err.MatchNotFound);
 
-        if (match.Report.UserId != userId) throw new ForbiddenException("This match is not for your report.");
+        if (match.Report.UserId != userId) throw new ForbiddenException("This match is not for your report.", Err.NotYourMatch);
         if (match.MatchStatus != MatchStatus.Confirmed)
-            throw new BusinessRuleException("The match must be confirmed by station staff first.");
-        if (match.Claim is not null) throw new BusinessRuleException("A claim already exists for this match.");
+            throw new BusinessRuleException("The match must be confirmed by station staff first.", Err.MatchNotConfirmed);
+        if (match.Claim is not null) throw new BusinessRuleException("A claim already exists for this match.", Err.ClaimExists);
 
         var claim = new OwnershipClaim { MatchId = matchId, ClaimedBy = userId };
         db.OwnershipClaims.Add(claim);
@@ -35,11 +36,11 @@ public class ClaimService(AppDbContext db) : IClaimService
         var claim = await LoadClaimAsync(claimId, ct);
 
         if (claim.Match.Item.CurrentStationId != employee.StationId)
-            throw new ForbiddenException("The item is held at a different station.");
+            throw new ForbiddenException("The item is held at a different station.", Err.WrongStation);
         if (claim.ClaimStatus != ClaimStatus.Pending)
-            throw new BusinessRuleException("Only pending claims can be verified.");
+            throw new BusinessRuleException("Only pending claims can be verified.", Err.ClaimNotPending);
         if (dto.Approve && !(dto.IdChecked && dto.SecretAnswerPassed))
-            throw new BusinessRuleException("Cannot approve before checking ID and the secret answer.");
+            throw new BusinessRuleException("Cannot approve before checking ID and the secret answer.", Err.ApproveNeedsChecks);
 
         claim.VerifiedBy = employeeId;
         claim.VerifiedAt = DateTime.UtcNow;
@@ -60,7 +61,8 @@ public class ClaimService(AppDbContext db) : IClaimService
             dto.Approve ? "Claim approved" : "Claim rejected",
             dto.Approve ? "Your ownership was verified. You can collect your item."
                         : "We could not verify ownership of this item.",
-            claim.Match.Report, claim.Match);
+            claim.Match.Report, claim.Match,
+            dto.Approve ? NotifCode.ClaimApproved : NotifCode.ClaimRejected);
 
         await db.SaveChangesAsync(ct);
         return claim;
@@ -72,9 +74,9 @@ public class ClaimService(AppDbContext db) : IClaimService
         var claim = await LoadClaimAsync(claimId, ct);
 
         if (claim.Match.Item.CurrentStationId != employee.StationId)
-            throw new ForbiddenException("The item is held at a different station.");
+            throw new ForbiddenException("The item is held at a different station.", Err.WrongStation);
         if (claim.ClaimStatus != ClaimStatus.Verified)
-            throw new BusinessRuleException("Only verified claims can be handed over.");
+            throw new BusinessRuleException("Only verified claims can be handed over.", Err.ClaimNotVerified);
 
         var now = DateTime.UtcNow;
         claim.ClaimStatus = ClaimStatus.HandedOver;
@@ -95,7 +97,7 @@ public class ClaimService(AppDbContext db) : IClaimService
 
         ServiceHelpers.Notify(db, claim.ClaimedBy, NotificationType.ItemReturned,
             "Item returned", "Your item was handed over. This report is now closed.",
-            claim.Match.Report, claim.Match);
+            claim.Match.Report, claim.Match, NotifCode.ItemReturned);
 
         await db.SaveChangesAsync(ct);
         return claim;
@@ -125,5 +127,5 @@ public class ClaimService(AppDbContext db) : IClaimService
                .Include(c => c.Match).ThenInclude(m => m.Item)
                .Include(c => c.Match).ThenInclude(m => m.Report)
                .FirstOrDefaultAsync(c => c.ClaimId == claimId, ct)
-           ?? throw new NotFoundException($"Claim {claimId} not found.");
+           ?? throw new NotFoundException($"Claim {claimId} not found.", Err.ClaimNotFound);
 }

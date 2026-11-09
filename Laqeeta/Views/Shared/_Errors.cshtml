@@ -2,9 +2,13 @@
 {
     <div class="alert alert-danger">
         <ul class="mb-0">
-            @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            @foreach (var entry in ViewData.ModelState.Where(kv => kv.Value is { Errors.Count: > 0 }))
             {
-                <li>@(string.IsNullOrEmpty(e.ErrorMessage) ? L["msg.invalidInput"] : e.ErrorMessage)</li>
+                foreach (var e in entry.Value!.Errors)
+                {
+                    var text = string.IsNullOrEmpty(e.ErrorMessage) ? L["msg.invalidInput"] : L[e.ErrorMessage];
+                    <li>@(string.IsNullOrEmpty(entry.Key) ? text : $"{L.Field(entry.Key)} {text}")</li>
+                }
             }
         </ul>
     </div>

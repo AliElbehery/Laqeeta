@@ -1,3 +1,7 @@
+using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
+using Laqeeta.Core.Models;
+
 namespace Laqeeta.Api.Web;
 
 /// <summary>Tiny bilingual (Arabic / English) localizer. Language is stored in the "lang" cookie.</summary>
@@ -10,6 +14,13 @@ public interface ILoc
     string Of<TEnum>(TEnum value) where TEnum : struct, Enum;
     /// <summary>UTC date-time -> local time text.</summary>
     string Dt(DateTime? utc);
+    /// <summary>Business error (Err code) in the current language.</summary>
+    string Error(DomainException ex);
+    /// <summary>Notification title / body in the current language (old rows without a code show as stored).</summary>
+    string Title(Notification n);
+    string Body(Notification n);
+    /// <summary>Label of a form field by its property name (used in validation messages).</summary>
+    string Field(string propertyName);
 }
 
 public class Loc(IHttpContextAccessor accessor) : ILoc
@@ -28,8 +39,47 @@ public class Loc(IHttpContextAccessor accessor) : ILoc
     public string Dt(DateTime? utc)
         => utc is null ? "—" : utc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
 
+    public string Error(DomainException ex) => Messages.Error(ex, Lang);
+    public string Title(Notification n) => Messages.Title(n.Code, n.Title, Lang);
+    public string Body(Notification n) => Messages.Body(n.Code, n.Message, n.Param, Lang);
+    public string Field(string propertyName)
+        => Text.ContainsKey($"field.{propertyName}") ? this[$"field.{propertyName}"] : propertyName;
+
     private static readonly Dictionary<string, (string Ar, string En)> Text = new()
     {
+        // ---- validation messages (ErrorMessage keys on the view models)
+        ["val.required"] = ("مطلوب.", "is required."),
+        ["val.length"] = ("طوله غير مناسب.", "has an invalid length."),
+        ["val.passwordLength"] = ("لازم يكون 8 حروف على الأقل.", "must be at least 8 characters."),
+        ["val.username"] = ("مسموح فيه حروف إنجليزية وأرقام و . _ - فقط.", "may contain letters, digits and . _ - only."),
+        ["val.email"] = ("مش إيميل صحيح.", "is not a valid email address."),
+        ["val.phone"] = ("مش رقم صحيح (أرقام فقط من 8 لـ 15 رقم).", "is not a valid phone number (8-15 digits)."),
+        ["val.compare"] = ("مش متطابق مع كلمة المرور.", "does not match the password."),
+        ["val.select"] = ("لازم تختاره.", "must be selected."),
+
+        // ---- field labels
+        ["field.FullName"] = ("الاسم بالكامل", "Full name"),
+        ["field.Username"] = ("اسم المستخدم", "Username"),
+        ["field.Email"] = ("الإيميل", "Email"),
+        ["field.Phone"] = ("رقم التليفون", "Phone"),
+        ["field.Password"] = ("كلمة المرور", "Password"),
+        ["field.ConfirmPassword"] = ("تأكيد كلمة المرور", "Confirm password"),
+        ["field.UsernameOrEmail"] = ("اسم المستخدم أو الإيميل", "Username or email"),
+        ["field.CurrentPassword"] = ("كلمة المرور الحالية", "Current password"),
+        ["field.NewPassword"] = ("كلمة المرور الجديدة", "New password"),
+        ["field.ConfirmNewPassword"] = ("تأكيد كلمة المرور الجديدة", "Confirm new password"),
+        ["field.LineId"] = ("الخط", "Metro line"),
+        ["field.ContactPhone"] = ("تليفون للتواصل", "Contact phone"),
+        ["field.Color"] = ("اللون", "Color"),
+        ["field.LostDate"] = ("تاريخ الفقد", "Date lost"),
+        ["field.Direction"] = ("الاتجاه", "Direction"),
+        ["field.Description"] = ("الوصف", "Description"),
+        ["field.FoundStationId"] = ("محطة اللقاء", "Found at station"),
+        ["field.FoundAt"] = ("وقت اللقاء", "Found at"),
+        ["field.PrivateIdentifyingDetails"] = ("تفاصيل خاصة", "Private details"),
+        ["field.ToStationId"] = ("المحطة الجديدة", "Destination station"),
+        ["field.Notes"] = ("ملاحظات", "Notes"),
+
         // ---- app / nav
         ["app.name"] = ("لقيتها", "Laqeeta"),
         ["app.tagline"] = ("نظام المفقودات والموجودات بالمترو", "Metro Lost & Found"),
@@ -42,6 +92,17 @@ public class Loc(IHttpContextAccessor accessor) : ILoc
         ["nav.notifications"] = ("الإشعارات", "Notifications"),
         ["nav.profile"] = ("حسابي", "My account"),
         ["nav.logout"] = ("تسجيل الخروج", "Log out"),
+        ["nav.addEmployee"] = ("إضافة موظف", "Add employee"),
+
+        // ---- add employee
+        ["employee.title"] = ("إضافة موظف جديد", "New employee"),
+        ["employee.hint"] = ("الموظف هيقدر يسجّل الحاجات الموجودة ويراجع التطابقات والطلبات في محطته.",
+                             "The employee can log found items and review matches and claims at their station."),
+        ["employee.station"] = ("المحطة اللي هيشتغل فيها", "Works at station"),
+        ["employee.noItems"] = ("لا تستقبل المفقودات", "does not accept items"),
+        ["employee.create"] = ("إنشاء الحساب", "Create account"),
+        ["msg.employeeCreated"] = ("تم إنشاء حساب الموظف {0}.", "Employee account {0} was created."),
+        ["field.StationId"] = ("المحطة", "Station"),
 
         // ---- common
         ["common.all"] = ("الكل", "All"),

@@ -1,0 +1,36 @@
+@model EmployeeFormVm
+@{
+    ViewData["Title"] = L["employee.title"];
+    var stations = (IEnumerable<StationDto>)ViewData["Stations"]!;
+}
+<div class="row justify-content-center"><div class="col-lg-8">
+<div class="card shadow-sm"><div class="card-body p-4">
+    <h1 class="h4 mb-1">@L["employee.title"]</h1>
+    <p class="text-muted small">@L["employee.hint"]</p>
+    <partial name="_Errors" />
+    <form method="post" asp-action="Create">
+        <div class="mb-3"><label asp-for="FullName" class="form-label">@L["auth.fullName"]</label><input asp-for="FullName" class="form-control" autofocus /></div>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label asp-for="Username" class="form-label">@L["auth.username"]</label><input asp-for="Username" class="form-control" autocomplete="off" /></div>
+            <div class="col-md-6 mb-3"><label asp-for="Phone" class="form-label">@L["auth.phone"]</label><input asp-for="Phone" class="form-control" inputmode="tel" /></div>
+        </div>
+        <div class="mb-3"><label asp-for="Email" class="form-label">@L["auth.email"]</label><input asp-for="Email" type="email" class="form-control" autocomplete="off" /></div>
+        <div class="mb-3">
+            <label asp-for="StationId" class="form-label">@L["employee.station"]</label>
+            <select asp-for="StationId" class="form-select">
+                <option value="0">— @L["common.select"] —</option>
+                @foreach (var s in stations)
+                {
+                    <option value="@s.StationId" selected="@(s.StationId == Model.StationId)">@s.StationName@(s.AcceptsItems ? "" : $" ({L["employee.noItems"]})")</option>
+                }
+            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label asp-for="Password" class="form-label">@L["auth.password"]</label><input asp-for="Password" class="form-control" autocomplete="new-password" /></div>
+            <div class="col-md-6 mb-3"><label asp-for="ConfirmPassword" class="form-label">@L["auth.confirmPassword"]</label><input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" /></div>
+        </div>
+        <div class="form-text mb-3">@L["auth.passwordHint"]</div>
+        <button class="btn btn-primary">@L["employee.create"]</button>
+        <a class="btn btn-link" asp-controller="Staff" asp-action="Index">@L["common.cancel"]</a>
+    </form>
+</div></div></div></div>

@@ -1,6 +1,7 @@
 using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Laqeeta.Tests;
@@ -44,7 +45,8 @@ public class ClaimServiceTests : IDisposable
     {
         var (_, _, match) = await S.SuggestedMatchAsync();
 
-        await Assert.ThrowsAsync<BusinessRuleException>(() => S.Claims().SubmitAsync(match.MatchId, S.OmarId));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => S.Claims().SubmitAsync(match.MatchId, S.OmarId));
+        Assert.Equal(Err.MatchNotConfirmed, ex.Code);
     }
 
     [Fact]
@@ -97,6 +99,7 @@ public class ClaimServiceTests : IDisposable
 
         var notes = await S.Read(db => db.Notifications.Where(n => n.UserId == S.OmarId).ToListAsync());
         Assert.Contains(notes, n => n.Type == NotificationType.ClaimUpdate && n.Title == "Claim approved");
+        Assert.Contains(notes, n => n.Code == NotifCode.ClaimApproved);
     }
 
     [Fact]
@@ -114,6 +117,7 @@ public class ClaimServiceTests : IDisposable
 
         var notes = await S.Read(db => db.Notifications.Where(n => n.UserId == S.OmarId).ToListAsync());
         Assert.Contains(notes, n => n.Title == "Claim rejected");
+        Assert.Contains(notes, n => n.Code == NotifCode.ClaimRejected);
     }
 
     [Fact]

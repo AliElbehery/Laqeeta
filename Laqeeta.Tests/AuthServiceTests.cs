@@ -1,6 +1,7 @@
 using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Laqeeta.Tests;
@@ -36,8 +37,10 @@ public class AuthServiceTests : IDisposable
     {
         await S.Auth().RegisterAsync(Reg());
 
-        await Assert.ThrowsAsync<ConflictException>(() => S.Auth().RegisterAsync(Reg(email: "other@test.com")));
-        await Assert.ThrowsAsync<ConflictException>(() => S.Auth().RegisterAsync(Reg(username: "ali2")));
+        var byName = await Assert.ThrowsAsync<ConflictException>(() => S.Auth().RegisterAsync(Reg(email: "other@test.com")));
+        var byEmail = await Assert.ThrowsAsync<ConflictException>(() => S.Auth().RegisterAsync(Reg(username: "ali2")));
+        Assert.Equal(Err.UsernameTaken, byName.Code);
+        Assert.Equal(Err.EmailTaken, byEmail.Code);
     }
 
     [Theory]
@@ -45,7 +48,10 @@ public class AuthServiceTests : IDisposable
     [InlineData("onlyletters")]     // no digit
     [InlineData("1234567890")]      // no letter
     public async Task Register_rejects_weak_passwords(string password)
-        => await Assert.ThrowsAsync<BusinessRuleException>(() => S.Auth().RegisterAsync(Reg(password: password)));
+    {
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => S.Auth().RegisterAsync(Reg(password: password)));
+        Assert.Equal(Err.PasswordWeak, ex.Code);
+    }
 
     // ------------------------------------------------------------ Login
 
@@ -70,6 +76,8 @@ public class AuthServiceTests : IDisposable
         var unknownUser = await Assert.ThrowsAsync<UnauthorizedException>(() => S.Auth().LoginAsync(new LoginDto("nobody", "Passw0rd!")));
 
         Assert.Equal(wrongPassword.Message, unknownUser.Message);   // no user enumeration
+        Assert.Equal(Err.InvalidCredentials, wrongPassword.Code);
+        Assert.Equal(Err.InvalidCredentials, unknownUser.Code);
     }
 
     [Fact]

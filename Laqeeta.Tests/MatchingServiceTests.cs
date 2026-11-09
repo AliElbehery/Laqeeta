@@ -1,5 +1,6 @@
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Laqeeta.Tests;
@@ -26,6 +27,7 @@ public class MatchingServiceTests : IDisposable
         var notifications = await S.Read(db => db.Notifications.Where(n => n.UserId == S.OmarId).ToListAsync());
         var n = Assert.Single(notifications);
         Assert.Equal(NotificationType.MatchFound, n.Type);
+        Assert.Equal(NotifCode.MatchFoundForReport, n.Code);
         Assert.Equal(match.MatchId, n.MatchId);
         Assert.Equal(report.ReportId, n.ReportId);
     }
@@ -131,6 +133,8 @@ public class MatchingServiceTests : IDisposable
 
         var n = Assert.Single(await S.Read(db => db.Notifications.Where(x => x.UserId == S.OmarId).ToListAsync()));
         Assert.Equal(NotificationType.ClaimUpdate, n.Type);
+        Assert.Equal(NotifCode.MatchConfirmed, n.Code);
+        Assert.Equal("Sadat", n.Param);                 // the station to visit, translated when displayed
     }
 
     [Fact]
@@ -138,7 +142,8 @@ public class MatchingServiceTests : IDisposable
     {
         var (_, _, match) = await S.SuggestedMatchAsync();
 
-        await Assert.ThrowsAsync<ForbiddenException>(() => S.Matching().ConfirmAsync(match.MatchId, S.EmpAttabaId));
+        var ex = await Assert.ThrowsAsync<ForbiddenException>(() => S.Matching().ConfirmAsync(match.MatchId, S.EmpAttabaId));
+        Assert.Equal(Err.WrongStation, ex.Code);
     }
 
     [Fact]
@@ -176,7 +181,8 @@ public class MatchingServiceTests : IDisposable
 
         await S.Matching().ConfirmAsync(m1.MatchId, S.EmpSadatId);
 
-        await Assert.ThrowsAsync<BusinessRuleException>(() => S.Matching().ConfirmAsync(m2.MatchId, S.EmpSadatId));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => S.Matching().ConfirmAsync(m2.MatchId, S.EmpSadatId));
+        Assert.Equal(Err.ReportNotOpen, ex.Code);
         var second = await S.Read(db => db.PossibleMatches.SingleAsync(m => m.MatchId == m2.MatchId));
         Assert.Equal(MatchStatus.Suggested, second.MatchStatus);   // untouched, can be used later
     }

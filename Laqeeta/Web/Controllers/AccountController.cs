@@ -38,7 +38,7 @@ public class AccountController(IAuthService auth) : AppController
         }
         catch (Exception ex) when (IsDomain(ex))
         {
-            ModelState.AddModelError("", ex.Message);
+            ModelState.AddModelError("", Msg(ex));
             return View(vm);
         }
     }
@@ -62,7 +62,7 @@ public class AccountController(IAuthService auth) : AppController
         }
         catch (Exception ex) when (IsDomain(ex))
         {
-            ModelState.AddModelError("", ex.Message);
+            ModelState.AddModelError("", Msg(ex));
             return View(vm);
         }
     }
