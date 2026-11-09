@@ -1,6 +1,7 @@
 using Laqeeta.Api.Auth;
 using Laqeeta.Api.Mapping;
 using Laqeeta.Core.DTOs;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,10 @@ public class NotificationsController(INotificationService notifications) : Contr
     [HttpGet]
     public async Task<ActionResult<IEnumerable<NotificationDto>>> GetMine(
         [FromQuery] bool unreadOnly, CancellationToken ct)
-        => Ok((await notifications.GetForUserAsync(User.GetUserId(), unreadOnly, ct)).Select(n => n.ToDto()));
+    {
+        var lang = Messages.Normalize(Request.Headers.AcceptLanguage.ToString());   // "Accept-Language: ar" => Arabic
+        return Ok((await notifications.GetForUserAsync(User.GetUserId(), unreadOnly, ct)).Select(n => n.ToDto(lang)));
+    }
 
     [HttpPost("{id:long}/read")]
     public async Task<IActionResult> MarkAsRead(long id, CancellationToken ct)

@@ -1,5 +1,6 @@
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Models;
 using Laqeeta.Infrastructure.Data;
@@ -15,7 +16,7 @@ public class MatchingService(AppDbContext db) : IMatchingService
     public async Task<IReadOnlyList<PossibleMatch>> GenerateForReportAsync(long reportId, CancellationToken ct = default)
     {
         var report = await db.LostReports.FirstOrDefaultAsync(r => r.ReportId == reportId, ct)
-                     ?? throw new NotFoundException($"Report {reportId} not found.");
+                     ?? throw new NotFoundException($"Report {reportId} not found.", Err.ReportNotFound);
 
         if (report.Status == LostReportStatus.Closed) return Array.Empty<PossibleMatch>();
 
@@ -42,7 +43,8 @@ public class MatchingService(AppDbContext db) : IMatchingService
             db.PossibleMatches.Add(match);
             ServiceHelpers.Notify(db, report.UserId, NotificationType.MatchFound,
                 "Possible match for your lost item",
-                "An item similar to your report was found. Check your matches.", report, match);
+                "An item similar to your report was found. Check your matches.", report, match,
+                NotifCode.MatchFoundForReport);
         }
 
         if (created.Count > 0) await db.SaveChangesAsync(ct);
@@ -54,7 +56,7 @@ public class MatchingService(AppDbContext db) : IMatchingService
         var item = await db.FoundItems
             .Include(i => i.FoundStation).ThenInclude(s => s.StationLines)
             .FirstOrDefaultAsync(i => i.ItemId == itemId, ct)
-            ?? throw new NotFoundException($"Item {itemId} not found.");
+            ?? throw new NotFoundException($"Item {itemId} not found.", Err.ItemNotFound);
 
         if (item.ItemStatus != FoundItemStatus.InStorage) return Array.Empty<PossibleMatch>();
 
@@ -81,7 +83,8 @@ public class MatchingService(AppDbContext db) : IMatchingService
             db.PossibleMatches.Add(match);
             ServiceHelpers.Notify(db, report.UserId, NotificationType.MatchFound,
                 "Possible match for your lost item",
-                "A newly found item looks like your report. Check your matches.", report, match);
+                "A newly found item looks like your report. Check your matches.", report, match,
+                NotifCode.MatchFoundForItem);
         }
 
         if (created.Count > 0) await db.SaveChangesAsync(ct);
@@ -92,8 +95,8 @@ public class MatchingService(AppDbContext db) : IMatchingService
                                                                       CancellationToken ct = default)
     {
         var report = await db.LostReports.AsNoTracking().FirstOrDefaultAsync(r => r.ReportId == reportId, ct)
-                     ?? throw new NotFoundException("Report not found.");
-        if (report.UserId != userId) throw new ForbiddenException("Not your report.");
+                     ?? throw new NotFoundException("Report not found.", Err.ReportNotFound);
+        if (report.UserId != userId) throw new ForbiddenException("Not your report.", Err.NotYourReport);
 
         var matches = await db.PossibleMatches.AsNoTracking()
             .Where(m => m.ReportId == reportId && m.MatchStatus != MatchStatus.Rejected)
@@ -126,11 +129,11 @@ public class MatchingService(AppDbContext db) : IMatchingService
 
         EnsureCanHandle(employee, match);
         if (match.MatchStatus != MatchStatus.Suggested)
-            throw new BusinessRuleException("Only suggested matches can be confirmed.");
+            throw new BusinessRuleException("Only suggested matches can be confirmed.", Err.ConfirmNeedsSuggested);
         if (match.Report.Status != LostReportStatus.Open)
-            throw new BusinessRuleException("This report is not open (it already has a confirmed match, or it is closed).");
+            throw new BusinessRuleException("This report is not open (it already has a confirmed match, or it is closed).", Err.ReportNotOpen);
         if (match.Item.ItemStatus != FoundItemStatus.InStorage)
-            throw new BusinessRuleException("The item is no longer in storage.");
+            throw new BusinessRuleException("The item is no longer in storage.", Err.ItemNotInStorage);
 
         match.MatchStatus = MatchStatus.Confirmed;
         match.Item.ItemStatus = FoundItemStatus.Matched;
@@ -142,7 +145,7 @@ public class MatchingService(AppDbContext db) : IMatchingService
         ServiceHelpers.Notify(db, match.Report.UserId, NotificationType.ClaimUpdate,
             "Your item is ready to claim",
             $"Please visit {match.Item.CurrentStation?.StationName ?? "the station"} with your ID to claim it.",
-            match.Report, match);
+            match.Report, match, NotifCode.MatchConfirmed, match.Item.CurrentStation?.StationName);
 
         await db.SaveChangesAsync(ct);
     }
@@ -154,7 +157,7 @@ public class MatchingService(AppDbContext db) : IMatchingService
 
         EnsureCanHandle(employee, match);
         if (match.MatchStatus != MatchStatus.Suggested)
-            throw new BusinessRuleException("Only suggested matches can be rejected.");
+            throw new BusinessRuleException("Only suggested matches can be rejected.", Err.RejectNeedsSuggested);
 
         match.MatchStatus = MatchStatus.Rejected;
         await db.SaveChangesAsync(ct);
@@ -165,11 +168,11 @@ public class MatchingService(AppDbContext db) : IMatchingService
                .Include(m => m.Report)
                .Include(m => m.Item).ThenInclude(i => i.CurrentStation)
                .FirstOrDefaultAsync(m => m.MatchId == matchId, ct)
-           ?? throw new NotFoundException($"Match {matchId} not found.");
+           ?? throw new NotFoundException($"Match {matchId} not found.", Err.MatchNotFound);
 
     private static void EnsureCanHandle(User employee, PossibleMatch match)
     {
         if (employee.StationId != match.Item.CurrentStationId)
-            throw new ForbiddenException("The item is held at a different station.");
+            throw new ForbiddenException("The item is held at a different station.", Err.WrongStation);
     }
 }

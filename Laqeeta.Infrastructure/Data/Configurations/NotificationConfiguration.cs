@@ -14,6 +14,8 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
         b.Property(x => x.Type).HasConversion<string>().HasMaxLength(30);
         b.Property(x => x.Title).IsRequired().HasMaxLength(200);
         b.Property(x => x.Message).IsRequired();
+        b.Property(x => x.Code).HasMaxLength(60);
+        b.Property(x => x.Param).HasMaxLength(200);
         b.Property(x => x.IsRead).HasDefaultValue(false);
         b.Property(x => x.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
 

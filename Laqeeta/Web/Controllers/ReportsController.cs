@@ -60,7 +60,7 @@ public class ReportsController(
         }
         catch (Exception ex) when (IsDomain(ex))
         {
-            Error(ex.Message);
+            Error(Msg(ex));
             return RedirectToAction(nameof(Index));
         }
     }

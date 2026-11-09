@@ -1,6 +1,7 @@
 using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Models;
 using Laqeeta.Infrastructure.Data;
@@ -16,13 +17,13 @@ public class FoundItemService(AppDbContext db, IMatchingService matching) : IFou
 
         var heldAt = await db.Stations.FirstAsync(s => s.StationId == employee.StationId, ct);
         if (!heldAt.AcceptsItems)
-            throw new BusinessRuleException("Your station does not accept lost items.");
+            throw new BusinessRuleException("Your station does not accept lost items.", Err.StationNoItems);
 
         if (!await db.Stations.AnyAsync(s => s.StationId == dto.FoundStationId, ct))
-            throw new NotFoundException("Found-at station not found.");
+            throw new NotFoundException("Found-at station not found.", Err.FoundStationNotFound);
 
         if (dto.FoundAt > DateTime.UtcNow.AddMinutes(5))
-            throw new BusinessRuleException("Found time cannot be in the future.");
+            throw new BusinessRuleException("Found time cannot be in the future.", Err.FoundTimeFuture);
 
         var item = new FoundItem
         {
@@ -57,23 +58,23 @@ public class FoundItemService(AppDbContext db, IMatchingService matching) : IFou
         => await db.FoundItems.AsNoTracking()
                .Include(i => i.FoundStation).Include(i => i.CurrentStation)
                .FirstOrDefaultAsync(i => i.ItemId == itemId, ct)
-           ?? throw new NotFoundException("Item not found.");
+           ?? throw new NotFoundException("Item not found.", Err.ItemNotFound);
 
     public async Task TransferAsync(long itemId, long toStationId, long employeeId, CancellationToken ct = default)
     {
         var employee = await ServiceHelpers.RequireEmployeeAsync(db, employeeId, ct);
         var item = await db.FoundItems.FirstOrDefaultAsync(i => i.ItemId == itemId, ct)
-                   ?? throw new NotFoundException("Item not found.");
+                   ?? throw new NotFoundException("Item not found.", Err.ItemNotFound);
 
         if (item.CurrentStationId != employee.StationId)
-            throw new ForbiddenException("The item is held at a different station.");
+            throw new ForbiddenException("The item is held at a different station.", Err.WrongStation);
         if (item.ItemStatus != FoundItemStatus.InStorage)
-            throw new BusinessRuleException("Only items in storage can be transferred.");
+            throw new BusinessRuleException("Only items in storage can be transferred.", Err.TransferNeedsStorage);
 
         var target = await db.Stations.FirstOrDefaultAsync(s => s.StationId == toStationId, ct)
-                     ?? throw new NotFoundException("Target station not found.");
-        if (!target.AcceptsItems) throw new BusinessRuleException("Target station does not accept items.");
-        if (target.StationId == item.CurrentStationId) throw new BusinessRuleException("Item is already there.");
+                     ?? throw new NotFoundException("Target station not found.", Err.TargetStationNotFound);
+        if (!target.AcceptsItems) throw new BusinessRuleException("Target station does not accept items.", Err.TargetNoItems);
+        if (target.StationId == item.CurrentStationId) throw new BusinessRuleException("Item is already there.", Err.ItemAlreadyThere);
 
         item.CurrentStationId = target.StationId;
         await db.SaveChangesAsync(ct);

@@ -16,15 +16,16 @@ public abstract class AppController : Controller
     protected void Success(string message) => TempData["Success"] = message;
     protected void Error(string message) => TempData["Error"] = message;
 
-    protected static bool IsDomain(Exception ex)
-        => ex is BusinessRuleException or NotFoundException or ForbiddenException
-              or ConflictException or UnauthorizedException;
+    protected static bool IsDomain(Exception ex) => ex is DomainException;
+
+    /// <summary>User-facing text of a business exception in the current language.</summary>
+    protected string Msg(Exception ex) => ex is DomainException d ? L.Error(d) : ex.Message;
 
     /// <summary>Runs a service call; returns null on success or the business error message.</summary>
     protected async Task<string?> RunAsync(Func<Task> action)
     {
         try { await action(); return null; }
-        catch (Exception ex) when (IsDomain(ex)) { return ex.Message; }
+        catch (DomainException ex) { return L.Error(ex); }
     }
 
     /// <summary>Runs a service call and stores a flash message (success or error).</summary>

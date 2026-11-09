@@ -1,6 +1,7 @@
 using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Models;
 using Laqeeta.Infrastructure.Data;
@@ -13,14 +14,14 @@ public class LostReportService(AppDbContext db, IMatchingService matching) : ILo
     public async Task<LostReport> CreateAsync(long userId, CreateLostReportDto dto, CancellationToken ct = default)
     {
         var user = await db.Users.FirstOrDefaultAsync(u => u.UserId == userId, ct)
-                   ?? throw new NotFoundException("User not found.");
-        if (!user.IsActive) throw new ForbiddenException("Account is disabled.");
+                   ?? throw new NotFoundException("User not found.", Err.UserNotFound);
+        if (!user.IsActive) throw new ForbiddenException("Account is disabled.", Err.AccountDisabled);
 
         if (!await db.MetroLines.AnyAsync(l => l.LineId == dto.LineId, ct))
-            throw new NotFoundException("Metro line not found.");
+            throw new NotFoundException("Metro line not found.", Err.LineNotFound);
 
         if (dto.LostDate > DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)))
-            throw new BusinessRuleException("Lost date cannot be in the future.");
+            throw new BusinessRuleException("Lost date cannot be in the future.", Err.LostDateFuture);
 
         var report = new LostReport
         {
@@ -48,9 +49,9 @@ public class LostReportService(AppDbContext db, IMatchingService matching) : ILo
         var report = await db.LostReports.AsNoTracking()
             .Include(r => r.Line)
             .FirstOrDefaultAsync(r => r.ReportId == reportId, ct)
-            ?? throw new NotFoundException("Report not found.");
+            ?? throw new NotFoundException("Report not found.", Err.ReportNotFound);
 
-        if (report.UserId != userId) throw new ForbiddenException("Not your report.");
+        if (report.UserId != userId) throw new ForbiddenException("Not your report.", Err.NotYourReport);
         return report;
     }
 
@@ -60,10 +61,10 @@ public class LostReportService(AppDbContext db, IMatchingService matching) : ILo
             .Include(r => r.Matches).ThenInclude(m => m.Item)
             .Include(r => r.Matches).ThenInclude(m => m.Claim)
             .FirstOrDefaultAsync(r => r.ReportId == reportId, ct)
-            ?? throw new NotFoundException("Report not found.");
+            ?? throw new NotFoundException("Report not found.", Err.ReportNotFound);
 
-        if (report.UserId != userId) throw new ForbiddenException("Not your report.");
-        if (report.Status == LostReportStatus.Closed) throw new BusinessRuleException("Report is already closed.");
+        if (report.UserId != userId) throw new ForbiddenException("Not your report.", Err.NotYourReport);
+        if (report.Status == LostReportStatus.Closed) throw new BusinessRuleException("Report is already closed.", Err.ReportAlreadyClosed);
 
         report.Status = LostReportStatus.Closed;
         report.ClosureReason = ClosureReason.CancelledByUser;

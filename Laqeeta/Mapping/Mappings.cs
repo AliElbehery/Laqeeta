@@ -1,4 +1,5 @@
 using Laqeeta.Core.DTOs;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Models;
 
 namespace Laqeeta.Api.Mapping;
@@ -34,6 +35,8 @@ public static class Mappings
         staff ? c.SecretAnswerPassed : null,
         staff ? c.VerificationNotes : null);
 
-    public static NotificationDto ToDto(this Notification n) => new(
-        n.NotificationId, n.Type, n.Title, n.Message, n.ReportId, n.MatchId, n.IsRead, n.CreatedAt, n.ReadAt);
+    /// <param name="lang">"ar" or "en" (see Messages.Normalize); old notifications without a code stay as stored.</param>
+    public static NotificationDto ToDto(this Notification n, string lang = "en") => new(
+        n.NotificationId, n.Type, Messages.Title(n.Code, n.Title, lang), Messages.Body(n.Code, n.Message, n.Param, lang),
+        n.ReportId, n.MatchId, n.IsRead, n.CreatedAt, n.ReadAt);
 }

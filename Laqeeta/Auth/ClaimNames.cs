@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Laqeeta.Core.Exceptions;
+using Laqeeta.Core.Localization;
 
 namespace Laqeeta.Api.Auth;
 
@@ -17,11 +18,11 @@ public static class ClaimsPrincipalExtensions
     public static long GetUserId(this ClaimsPrincipal user)
         => long.TryParse(user.FindFirst(ClaimNames.UserId)?.Value, out var id)
             ? id
-            : throw new UnauthorizedException("Invalid token.");
+            : throw new UnauthorizedException("Invalid token.", Err.InvalidToken);
 
     /// <summary>Station of the logged-in employee; throws 403 if the token has none.</summary>
     public static long GetRequiredStationId(this ClaimsPrincipal user)
-        => user.GetStationId() ?? throw new ForbiddenException("This action requires an employee assigned to a station.");
+        => user.GetStationId() ?? throw new ForbiddenException("This action requires an employee assigned to a station.", Err.EmployeeRequired);
 
     public static long? GetStationId(this ClaimsPrincipal user)
         => long.TryParse(user.FindFirst(ClaimNames.StationId)?.Value, out var id) ? id : null;

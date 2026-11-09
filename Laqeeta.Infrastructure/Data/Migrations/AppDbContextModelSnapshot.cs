@@ -225,6 +225,11 @@ namespace Laqeeta.Infrastructure.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("NotificationId"));
 
+                    b.Property<string>("Code")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)")
+                        .HasColumnName("code");
+
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -245,6 +250,11 @@ namespace Laqeeta.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("message");
+
+                    b.Property<string>("Param")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("param");
 
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("datetime2")
