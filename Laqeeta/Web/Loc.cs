@@ -92,6 +92,17 @@ public class Loc(IHttpContextAccessor accessor) : ILoc
         ["nav.notifications"] = ("الإشعارات", "Notifications"),
         ["nav.profile"] = ("حسابي", "My account"),
         ["nav.logout"] = ("تسجيل الخروج", "Log out"),
+        ["nav.addEmployee"] = ("إضافة موظف", "Add employee"),
+
+        // ---- add employee
+        ["employee.title"] = ("إضافة موظف جديد", "New employee"),
+        ["employee.hint"] = ("الموظف هيقدر يسجّل الحاجات الموجودة ويراجع التطابقات والطلبات في محطته.",
+                             "The employee can log found items and review matches and claims at their station."),
+        ["employee.station"] = ("المحطة اللي هيشتغل فيها", "Works at station"),
+        ["employee.noItems"] = ("لا تستقبل المفقودات", "does not accept items"),
+        ["employee.create"] = ("إنشاء الحساب", "Create account"),
+        ["msg.employeeCreated"] = ("تم إنشاء حساب الموظف {0}.", "Employee account {0} was created."),
+        ["field.StationId"] = ("المحطة", "Station"),
 
         // ---- common
         ["common.all"] = ("الكل", "All"),
