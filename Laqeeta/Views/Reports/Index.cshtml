@@ -1,0 +1,33 @@
+@model IReadOnlyList<LostReport>
+@{ ViewData["Title"] = L["nav.myReports"]; }
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">@L["nav.myReports"]</h1>
+    <a class="btn btn-primary" asp-action="Create">+ @L["nav.newReport"]</a>
+</div>
+@if (Model.Count == 0)
+{
+    <div class="card"><div class="card-body text-center text-muted py-5">
+        <div class="fs-1">📭</div>
+        <p>@L["report.empty"]</p>
+        <a class="btn btn-primary" asp-action="Create">@L["nav.newReport"]</a>
+    </div></div>
+}
+else
+{
+    <div class="row g-3">
+    @foreach (var r in Model)
+    {
+        <div class="col-md-6 col-lg-4">
+            <a class="text-decoration-none text-reset" asp-action="Details" asp-route-id="@r.ReportId">
+            <div class="card h-100 shadow-sm card-hover"><div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>@L.Of(r.Category) — @r.Color</strong>
+                    <span class="badge @Ui.BadgeClass(r.Status)">@L.Of(r.Status)</span>
+                </div>
+                <p class="text-muted small mb-2">@r.Description</p>
+                <div class="small text-muted">🚇 @r.Line?.LineName · 📅 @r.LostDate.ToString("yyyy-MM-dd")</div>
+            </div></div></a>
+        </div>
+    }
+    </div>
+}

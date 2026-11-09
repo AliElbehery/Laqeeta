@@ -1,0 +1,21 @@
+@{ ViewData["Title"] = L["app.name"]; }
+<section class="hero text-center rounded-4 p-5 mb-4">
+    <h1 class="display-5 fw-bold">🚇 @L["home.title"]</h1>
+    <p class="lead mx-auto" style="max-width: 640px">@L["home.subtitle"]</p>
+    <div class="d-flex gap-2 justify-content-center flex-wrap mt-4">
+        <a class="btn btn-light btn-lg" asp-controller="Account" asp-action="Register">@L["home.start"]</a>
+        <a class="btn btn-outline-light btn-lg" asp-controller="Account" asp-action="Login">@L["auth.login"]</a>
+    </div>
+</section>
+<div class="row g-3 text-center">
+    @foreach (var (icon, t, d) in new[] { ("📝", "home.step1.title", "home.step1.text"), ("🔎", "home.step2.title", "home.step2.text"), ("🤝", "home.step3.title", "home.step3.text") })
+    {
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm"><div class="card-body">
+                <div class="fs-1">@icon</div>
+                <h2 class="h5">@L[t]</h2>
+                <p class="text-muted mb-0">@L[d]</p>
+            </div></div>
+        </div>
+    }
+</div>

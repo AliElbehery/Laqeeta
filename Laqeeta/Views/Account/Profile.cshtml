@@ -1,0 +1,27 @@
+@model ChangePasswordVm
+@{
+    ViewData["Title"] = L["nav.profile"];
+    var p = (UserDto)ViewData["Profile"]!;
+}
+<h1 class="h3 mb-4">@L["nav.profile"]</h1>
+<div class="row g-4">
+    <div class="col-md-6"><div class="card shadow-sm"><div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">@L["auth.fullName"]</dt><dd class="col-sm-8">@p.FullName</dd>
+            <dt class="col-sm-4">@L["auth.username"]</dt><dd class="col-sm-8">@p.Username</dd>
+            <dt class="col-sm-4">@L["auth.email"]</dt><dd class="col-sm-8">@p.Email</dd>
+            <dt class="col-sm-4">@L["auth.phone"]</dt><dd class="col-sm-8">@p.Phone</dd>
+            <dt class="col-sm-4">@L["auth.role"]</dt><dd class="col-sm-8">@L.Of(p.Role)</dd>
+        </dl>
+    </div></div></div>
+    <div class="col-md-6"><div class="card shadow-sm"><div class="card-body">
+        <h2 class="h5">@L["auth.changePassword"]</h2>
+        <partial name="_Errors" />
+        <form method="post" asp-action="Profile">
+            <div class="mb-3"><label asp-for="CurrentPassword" class="form-label">@L["auth.currentPassword"]</label><input asp-for="CurrentPassword" class="form-control" autocomplete="current-password" /></div>
+            <div class="mb-3"><label asp-for="NewPassword" class="form-label">@L["auth.newPassword"]</label><input asp-for="NewPassword" class="form-control" autocomplete="new-password" /></div>
+            <div class="mb-3"><label asp-for="ConfirmNewPassword" class="form-label">@L["auth.confirmPassword"]</label><input asp-for="ConfirmNewPassword" class="form-control" autocomplete="new-password" /></div>
+            <button class="btn btn-primary">@L["common.save"]</button>
+        </form>
+    </div></div></div>
+</div>

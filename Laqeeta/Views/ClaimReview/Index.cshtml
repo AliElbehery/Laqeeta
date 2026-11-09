@@ -1,0 +1,49 @@
+@model IReadOnlyList<OwnershipClaim>
+@{
+    ViewData["Title"] = L["nav.claims"];
+    var current = ViewData["Status"] as ClaimStatus?;
+}
+<h1 class="h3 mb-3">@L["nav.claims"]</h1>
+<div class="d-flex gap-2 flex-wrap mb-3">
+    <a class="btn btn-sm @(current is null ? "btn-secondary" : "btn-outline-secondary")" asp-action="Index">@L["common.all"]</a>
+    @foreach (var s in Enum.GetValues<ClaimStatus>())
+    {
+        <a class="btn btn-sm @(current == s ? "btn-secondary" : "btn-outline-secondary")" asp-action="Index" asp-route-status="@s">@L.Of(s)</a>
+    }
+</div>
+@if (Model.Count == 0)
+{
+    <div class="alert alert-secondary">@L["claim.empty"]</div>
+}
+else
+{
+    <div class="card shadow-sm"><div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>#</th><th>@L["claim.claimant"]</th><th>@L["auth.phone"]</th><th>@L["match.item"]</th><th>@L["claim.claimedAt"]</th><th>@L["common.status"]</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.ClaimId</td>
+                <td>@c.ClaimedByUser?.FullName</td>
+                <td>@c.ClaimedByUser?.Phone</td>
+                <td><a asp-controller="Items" asp-action="Details" asp-route-id="@c.Match?.ItemId">#@c.Match?.ItemId</a></td>
+                <td>@L.Dt(c.ClaimedAt)</td>
+                <td><span class="badge @Ui.BadgeClass(c.ClaimStatus)">@L.Of(c.ClaimStatus)</span></td>
+                <td class="text-end">
+                    @if (c.ClaimStatus == ClaimStatus.Pending)
+                    {
+                        <a class="btn btn-sm btn-primary" asp-action="Verify" asp-route-id="@c.ClaimId">@L["claim.verify"]</a>
+                    }
+                    else if (c.ClaimStatus == ClaimStatus.Verified)
+                    {
+                        <form asp-action="HandOver" asp-route-id="@c.ClaimId" method="post" class="d-inline" onsubmit="return confirm('@L["claim.handOverConfirm"]');">
+                            <button class="btn btn-sm btn-success">🤝 @L["claim.handOver"]</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table></div></div>
+}

@@ -1,0 +1,35 @@
+@model FoundItem
+@{
+    ViewData["Title"] = $"{L["items.title"]} #{Model.ItemId}";
+    var stations = (IEnumerable<StationDto>)ViewData["Stations"]!;
+}
+<a asp-action="Index" class="text-decoration-none">← @L["nav.items"]</a>
+<h1 class="h3 my-3">@L.Of(Model.Category) — @Model.Color <span class="badge @Ui.BadgeClass(Model.ItemStatus) fs-6 align-middle">@L.Of(Model.ItemStatus)</span></h1>
+<div class="row g-4">
+    <div class="col-lg-7"><div class="card shadow-sm"><div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">@L["items.publicDescription"]</dt><dd class="col-sm-8">@Model.Description</dd>
+            <dt class="col-sm-4">@L["items.privateDetails"]</dt><dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.PrivateIdentifyingDetails) ? "—" : Model.PrivateIdentifyingDetails)</dd>
+            <dt class="col-sm-4">@L["items.foundStation"]</dt><dd class="col-sm-8">@Model.FoundStation?.StationName</dd>
+            <dt class="col-sm-4">@L["items.currentStation"]</dt><dd class="col-sm-8">@Model.CurrentStation?.StationName</dd>
+            <dt class="col-sm-4">@L["items.foundAt"]</dt><dd class="col-sm-8">@L.Dt(Model.FoundAt)</dd>
+            <dt class="col-sm-4">@L["items.loggedAt"]</dt><dd class="col-sm-8">@L.Dt(Model.LoggedAt)</dd>
+            @if (Model.ReturnedAt is { } ra) { <dt class="col-sm-4">@L["items.returnedAt"]</dt><dd class="col-sm-8">@L.Dt(ra)</dd> }
+        </dl>
+    </div></div></div>
+    @if (Model.ItemStatus == FoundItemStatus.InStorage)
+    {
+        <div class="col-lg-5"><div class="card shadow-sm"><div class="card-body">
+            <h2 class="h5">@L["items.transfer"]</h2>
+            <form asp-action="Transfer" asp-route-id="@Model.ItemId" method="post">
+                <div class="mb-3">
+                    <label class="form-label">@L["items.toStation"]</label>
+                    <select name="ToStationId" class="form-select" required>
+                        @foreach (var s in stations) { <option value="@s.StationId">@s.StationName</option> }
+                    </select>
+                </div>
+                <button class="btn btn-outline-primary">@L["items.transfer"]</button>
+            </form>
+        </div></div></div>
+    }
+</div>

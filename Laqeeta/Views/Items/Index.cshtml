@@ -1,0 +1,41 @@
+@model IReadOnlyList<FoundItem>
+@{
+    ViewData["Title"] = L["nav.items"];
+    var current = ViewData["Status"] as FoundItemStatus?;
+}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h1 class="h3 mb-0">@L["nav.items"]</h1>
+    <a class="btn btn-primary" asp-action="Create">+ @L["items.log"]</a>
+</div>
+<div class="d-flex gap-2 flex-wrap mb-3">
+    <a class="btn btn-sm @(current is null ? "btn-secondary" : "btn-outline-secondary")" asp-action="Index">@L["common.all"]</a>
+    @foreach (var s in new[] { FoundItemStatus.InStorage, FoundItemStatus.Matched, FoundItemStatus.Returned })
+    {
+        <a class="btn btn-sm @(current == s ? "btn-secondary" : "btn-outline-secondary")" asp-action="Index" asp-route-status="@s">@L.Of(s)</a>
+    }
+</div>
+@if (Model.Count == 0)
+{
+    <div class="alert alert-secondary">@L["items.empty"]</div>
+}
+else
+{
+    <div class="card shadow-sm"><div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead><tr><th>#</th><th>@L["report.category"]</th><th>@L["report.color"]</th><th>@L["report.description"]</th><th>@L["items.foundAt"]</th><th>@L["common.status"]</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var i in Model)
+        {
+            <tr>
+                <td>@i.ItemId</td>
+                <td>@L.Of(i.Category)</td>
+                <td>@i.Color</td>
+                <td class="text-truncate" style="max-width: 280px">@i.Description</td>
+                <td>@L.Dt(i.FoundAt)</td>
+                <td><span class="badge @Ui.BadgeClass(i.ItemStatus)">@L.Of(i.ItemStatus)</span></td>
+                <td><a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@i.ItemId">@L["common.details"]</a></td>
+            </tr>
+        }
+        </tbody>
+    </table></div></div>
+}

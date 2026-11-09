@@ -1,0 +1,11 @@
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@(string.IsNullOrEmpty(e.ErrorMessage) ? L["msg.invalidInput"] : e.ErrorMessage)</li>
+            }
+        </ul>
+    </div>
+}

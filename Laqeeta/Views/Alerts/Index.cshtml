@@ -1,0 +1,46 @@
+@model IReadOnlyList<Notification>
+@{
+    ViewData["Title"] = L["nav.notifications"];
+    var unreadOnly = ViewData["UnreadOnly"] is true;
+    var isEmp = User.IsInRole("Employee");
+}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h1 class="h3 mb-0">@L["nav.notifications"]</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-sm @(unreadOnly ? "btn-outline-secondary" : "btn-secondary")" asp-action="Index">@L["common.all"]</a>
+        <a class="btn btn-sm @(unreadOnly ? "btn-secondary" : "btn-outline-secondary")" asp-action="Index" asp-route-unreadOnly="true">@L["notif.unread"]</a>
+        <form asp-action="MarkAllRead" method="post"><button class="btn btn-sm btn-outline-primary">@L["notif.markAll"]</button></form>
+    </div>
+</div>
+@if (Model.Count == 0)
+{
+    <div class="alert alert-secondary">@L["notif.empty"]</div>
+}
+else
+{
+    <div class="list-group shadow-sm">
+    @foreach (var n in Model)
+    {
+        <div class="list-group-item @(n.IsRead ? "" : "list-group-item-primary")">
+            <div class="d-flex justify-content-between flex-wrap gap-2">
+                <div>
+                    <span class="badge text-bg-secondary me-1">@L.Of(n.Type)</span>
+                    <strong>@n.Title</strong>
+                    <div>@n.Message</div>
+                    <div class="small text-muted">@L.Dt(n.CreatedAt)</div>
+                </div>
+                <div class="d-flex gap-2 align-items-start">
+                    @if (n.ReportId is { } rid && !isEmp)
+                    {
+                        <a class="btn btn-sm btn-outline-primary" asp-controller="Reports" asp-action="Details" asp-route-id="@rid">@L["notif.openReport"]</a>
+                    }
+                    @if (!n.IsRead)
+                    {
+                        <form asp-action="MarkRead" asp-route-id="@n.NotificationId" method="post"><button class="btn btn-sm btn-outline-secondary">@L["notif.markRead"]</button></form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+}

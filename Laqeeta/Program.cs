@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Laqeeta.Api.Auth;
 using Laqeeta.Api.Middleware;
+using Laqeeta.Api.Web;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Infrastructure;
 using Laqeeta.Infrastructure.Data;
@@ -29,7 +30,27 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptio
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 
 builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddAuthentication(o =>
+    {
+        o.DefaultScheme = WebAuth.Smart;           // picks JWT for /api/*, cookie for the website
+        o.DefaultChallengeScheme = WebAuth.Smart;
+    })
+    .AddPolicyScheme(WebAuth.Smart, "JWT for /api, cookie for pages", o =>
+    {
+        o.ForwardDefaultSelector = ctx =>
+            ctx.Request.Path.StartsWithSegments("/api") ? JwtBearerDefaults.AuthenticationScheme : WebAuth.Scheme;
+    })
+    .AddCookie(WebAuth.Scheme, o =>
+    {
+        o.LoginPath = "/account/login";
+        o.AccessDeniedPath = "/account/denied";
+        o.ExpireTimeSpan = TimeSpan.FromHours(8);
+        o.SlidingExpiration = true;
+        o.Cookie.Name = "laqeeta.auth";
+        o.Cookie.HttpOnly = true;
+        o.Cookie.SameSite = SameSiteMode.Lax;
+        o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    })
     .AddJwtBearer(o =>
     {
         o.MapInboundClaims = false;   // keep "sub", "role", ... as written in the token
@@ -65,7 +86,9 @@ builder.Services.AddRateLimiter(o =>
 });
 
 // ---------------------------------------------------------------- MVC + Swagger
-builder.Services.AddControllers()
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ILoc, Loc>();
+builder.Services.AddControllersWithViews()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(o =>
@@ -85,6 +108,9 @@ builder.Services.AddSwaggerGen(o =>
 
 var app = builder.Build();
 
+if (!app.Environment.IsDevelopment())
+    app.UseExceptionHandler("/error");          // friendly error page for the website
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -100,6 +126,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();

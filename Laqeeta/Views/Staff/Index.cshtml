@@ -1,0 +1,22 @@
+@model StaffDashboardVm
+@{ ViewData["Title"] = L["nav.dashboard"]; }
+<h1 class="h3 mb-1">@L["nav.dashboard"]</h1>
+<p class="text-muted">📍 @L["staff.station"]: <strong>@Model.StationName</strong></p>
+<div class="row g-3 mb-4">
+    @foreach (var (label, value, ctl, extra) in new[] {
+        ("staff.inStorage", Model.ItemsInStorage, "Items", "primary"),
+        ("staff.suggested", Model.SuggestedMatches, "MatchReview", "info"),
+        ("staff.pending", Model.PendingClaims, "ClaimReview", "warning"),
+        ("staff.ready", Model.ReadyForHandOver, "ClaimReview", "success") })
+    {
+        <div class="col-6 col-lg-3">
+            <a class="text-decoration-none" asp-controller="@ctl" asp-action="Index">
+                <div class="card shadow-sm card-hover border-@extra"><div class="card-body text-center">
+                    <div class="display-5 fw-bold text-@extra">@value</div>
+                    <div class="text-muted">@L[label]</div>
+                </div></div>
+            </a>
+        </div>
+    }
+</div>
+<a class="btn btn-primary btn-lg" asp-controller="Items" asp-action="Create">+ @L["items.log"]</a>
