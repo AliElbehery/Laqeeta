@@ -1,0 +1,49 @@
+@model ReportFormVm
+@{
+    ViewData["Title"] = L["nav.newReport"];
+    var lines = (IEnumerable<LineDto>)ViewData["Lines"]!;
+}
+<div class="row justify-content-center"><div class="col-lg-8">
+<div class="card shadow-sm"><div class="card-body p-4">
+    <h1 class="h4 mb-3">@L["nav.newReport"]</h1>
+    <partial name="_Errors" />
+    <form method="post" asp-action="Create">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="LineId" class="form-label">@L["report.line"]</label>
+                <select asp-for="LineId" class="form-select">
+                    <option value="0">— @L["common.select"] —</option>
+                    @foreach (var l in lines) { <option value="@l.LineId" selected="@(l.LineId == Model.LineId)">@l.LineName</option> }
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Category" class="form-label">@L["report.category"]</label>
+                <select asp-for="Category" class="form-select">
+                    @foreach (var c in Enum.GetValues<ItemCategory>()) { <option value="@c" selected="@(c == Model.Category)">@L.Of(c)</option> }
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3"><label asp-for="Color" class="form-label">@L["report.color"]</label><input asp-for="Color" class="form-control" /></div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">@L["report.lostDate"]</label>
+                <input type="date" name="LostDate" class="form-control" value="@Model.LostDate.ToString("yyyy-MM-dd")" max="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">@L["report.time"] <span class="text-muted small">(@L["common.optional"])</span></label>
+                <input type="time" name="ApproximateTime" class="form-control" value="@Model.ApproximateTime?.ToString("HH:mm")" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label asp-for="Direction" class="form-label">@L["report.direction"] <span class="text-muted small">(@L["common.optional"])</span></label><input asp-for="Direction" class="form-control" /></div>
+            <div class="col-md-6 mb-3"><label asp-for="ContactPhone" class="form-label">@L["report.contactPhone"]</label><input asp-for="ContactPhone" class="form-control" inputmode="tel" /></div>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label">@L["report.description"]</label>
+            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+            <div class="form-text">@L["report.descriptionHint"]</div>
+        </div>
+        <button class="btn btn-primary">@L["report.submit"]</button>
+        <a class="btn btn-link" asp-action="Index">@L["common.cancel"]</a>
+    </form>
+</div></div></div></div>

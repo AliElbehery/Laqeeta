@@ -1,0 +1,63 @@
+@model IReadOnlyList<PossibleMatch>
+@{
+    ViewData["Title"] = L["nav.matches"];
+    var current = ViewData["Status"] as MatchStatus?;
+}
+<h1 class="h3 mb-3">@L["nav.matches"]</h1>
+<div class="d-flex gap-2 flex-wrap mb-3">
+    @foreach (var s in Enum.GetValues<MatchStatus>())
+    {
+        <a class="btn btn-sm @(current == s ? "btn-secondary" : "btn-outline-secondary")" asp-action="Index" asp-route-status="@s">@L.Of(s)</a>
+    }
+</div>
+@if (Model.Count == 0)
+{
+    <div class="alert alert-secondary">@L["match.empty"]</div>
+}
+else
+{
+    @foreach (var m in Model)
+    {
+        <div class="card shadow-sm mb-3"><div class="card-body">
+            <div class="d-flex justify-content-between mb-3">
+                <strong>@L["match.title"] #@m.MatchId</strong>
+                <span class="badge @Ui.BadgeClass(m.MatchStatus)">@L.Of(m.MatchStatus)</span>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 rounded bg-body-tertiary h-100">
+                        <div class="fw-semibold mb-1">📝 @L["match.report"] #@m.Report.ReportId</div>
+                        <div>@L.Of(m.Report.Category) — @m.Report.Color</div>
+                        <div class="small">@m.Report.Description</div>
+                        <div class="small text-muted mt-1">🚇 @m.Report.Line?.LineName · 📅 @m.Report.LostDate.ToString("yyyy-MM-dd")@(string.IsNullOrWhiteSpace(m.Report.Direction) ? "" : " · " + m.Report.Direction)</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 rounded bg-body-tertiary h-100">
+                        <div class="fw-semibold mb-1">📦 @L["match.item"] <a asp-controller="Items" asp-action="Details" asp-route-id="@m.ItemId">#@m.ItemId</a></div>
+                        <div>@L.Of(m.Item.Category) — @m.Item.Color</div>
+                        <div class="small">@m.Item.Description</div>
+                        @if (!string.IsNullOrWhiteSpace(m.Item.PrivateIdentifyingDetails))
+                        {
+                            <div class="small mt-1"><span class="badge text-bg-dark">🔒 @L["items.privateDetails"]</span> @m.Item.PrivateIdentifyingDetails</div>
+                        }
+                        <div class="small text-muted mt-1">📅 @L.Dt(m.Item.FoundAt)</div>
+                    </div>
+                </div>
+            </div>
+            @if (m.MatchStatus == MatchStatus.Suggested)
+            {
+                <div class="d-flex gap-2 mt-3">
+                    <form asp-action="Confirm" asp-route-id="@m.MatchId" method="post">
+                        <input type="hidden" name="status" value="@current" />
+                        <button class="btn btn-success btn-sm">✔ @L["match.confirm"]</button>
+                    </form>
+                    <form asp-action="Reject" asp-route-id="@m.MatchId" method="post">
+                        <input type="hidden" name="status" value="@current" />
+                        <button class="btn btn-outline-danger btn-sm">✖ @L["match.reject"]</button>
+                    </form>
+                </div>
+            }
+        </div></div>
+    }
+}

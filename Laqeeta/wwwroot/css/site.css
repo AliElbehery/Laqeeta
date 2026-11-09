@@ -1,0 +1,7 @@
+:root { --brand: #0b3c5d; --brand-2: #1d6fa5; --accent: #e63946; }
+body { background: #f4f6f9; font-family: "Segoe UI", Tahoma, "Noto Naskh Arabic", Arial, sans-serif; }
+.app-nav { background: linear-gradient(90deg, var(--brand), var(--brand-2)); }
+.hero { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
+.card-hover { transition: transform .15s ease, box-shadow .15s ease; }
+.card-hover:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.12) !important; }
+.dropdown-menu form { margin: 0; }

@@ -1,0 +1,78 @@
+@model ReportDetailsVm
+@{
+    var r = Model.Report;
+    ViewData["Title"] = $"{L["report.title"]} #{r.ReportId}";
+    var visible = Model.Matches.Where(m => m.MatchStatus != MatchStatus.Rejected).ToList();
+}
+<a asp-action="Index" class="text-decoration-none">← @L["nav.myReports"]</a>
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 my-3">
+    <h1 class="h3 mb-0">@L.Of(r.Category) — @r.Color <span class="badge @Ui.BadgeClass(r.Status) fs-6 align-middle">@L.Of(r.Status)</span></h1>
+    @if (r.Status != LostReportStatus.Closed)
+    {
+        <form asp-action="Cancel" asp-route-id="@r.ReportId" method="post" onsubmit="return confirm('@L["report.cancelConfirm"]');">
+            <button class="btn btn-outline-danger btn-sm">@L["report.cancel"]</button>
+        </form>
+    }
+</div>
+
+<div class="card shadow-sm mb-4"><div class="card-body">
+    <dl class="row mb-0">
+        <dt class="col-sm-3">@L["report.line"]</dt><dd class="col-sm-9">@r.Line?.LineName</dd>
+        <dt class="col-sm-3">@L["report.lostDate"]</dt><dd class="col-sm-9">@r.LostDate.ToString("yyyy-MM-dd")@(r.ApproximateTime is { } t ? " · " + t.ToString("HH:mm") : "")</dd>
+        @if (!string.IsNullOrWhiteSpace(r.Direction)) { <dt class="col-sm-3">@L["report.direction"]</dt><dd class="col-sm-9">@r.Direction</dd> }
+        <dt class="col-sm-3">@L["report.description"]</dt><dd class="col-sm-9">@r.Description</dd>
+        <dt class="col-sm-3">@L["report.contactPhone"]</dt><dd class="col-sm-9">@r.ContactPhone</dd>
+        <dt class="col-sm-3">@L["common.created"]</dt><dd class="col-sm-9">@L.Dt(r.CreatedAt)</dd>
+        @if (r.ClosureReason is { } cr) { <dt class="col-sm-3">@L["report.closureReason"]</dt><dd class="col-sm-9">@L.Of(cr)</dd> }
+    </dl>
+</div></div>
+
+<h2 class="h4">@L["match.title"]</h2>
+@if (visible.Count == 0)
+{
+    <div class="alert alert-secondary">@L["match.none"]</div>
+}
+else
+{
+    <div class="row g-3">
+    @foreach (var m in visible)
+    {
+        <div class="col-md-6"><div class="card h-100 shadow-sm"><div class="card-body">
+            <div class="d-flex justify-content-between mb-2">
+                <strong>@L.Of(m.Item.Category) — @m.Item.Color</strong>
+                <span class="badge @Ui.BadgeClass(m.MatchStatus)">@L.Of(m.MatchStatus)</span>
+            </div>
+            <p class="mb-2">@m.Item.Description</p>
+            <div class="small text-muted mb-2">📅 @L.Dt(m.Item.FoundAt) · 📍 @m.Item.CurrentStation?.StationName</div>
+
+            @if (m.MatchStatus == MatchStatus.Suggested)
+            {
+                <div class="alert alert-light border small mb-0">⏳ @L["match.waiting"]</div>
+            }
+            else if (m.MatchStatus == MatchStatus.Confirmed)
+            {
+                @if (Model.ClaimsByMatch.TryGetValue(m.MatchId, out var claim))
+                {
+                    <div class="mb-2">@L["claim.status"]: <span class="badge @Ui.BadgeClass(claim.ClaimStatus)">@L.Of(claim.ClaimStatus)</span></div>
+                    @if (claim.ClaimStatus == ClaimStatus.Pending)
+                    {
+                        <div class="small text-muted">@L["claim.pendingHint"]</div>
+                    }
+                    else if (claim.ClaimStatus == ClaimStatus.Verified)
+                    {
+                        <div class="alert alert-success small mb-0">✅ @L["claim.collectHint"] <strong>@m.Item.CurrentStation?.StationName</strong></div>
+                    }
+                }
+                else
+                {
+                    <div class="small text-muted mb-2">@L["claim.confirmedHint"]</div>
+                    <form asp-action="Claim" asp-route-id="@r.ReportId" method="post">
+                        <input type="hidden" name="matchId" value="@m.MatchId" />
+                        <button class="btn btn-success btn-sm">@L["claim.submit"]</button>
+                    </form>
+                }
+            }
+        </div></div></div>
+    }
+    </div>
+}

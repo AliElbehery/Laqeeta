@@ -1,0 +1,88 @@
+@{
+    var isAuth = User.Identity?.IsAuthenticated == true;
+    var isEmp = User.IsInRole("Employee");
+    var fullName = User.FindFirst("full_name")?.Value ?? User.Identity?.Name;
+    var current = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
+    var otherLang = L.IsRtl ? "en" : "ar";
+}
+<!DOCTYPE html>
+<html lang="@L.Lang" dir="@(L.IsRtl ? "rtl" : "ltr")">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - @L["app.name"]</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/@(L.IsRtl ? "bootstrap.rtl.min.css" : "bootstrap.min.css")" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav class="navbar navbar-expand-lg navbar-dark app-nav">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🚇 @L["app.name"]</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="nav">
+            <ul class="navbar-nav me-auto">
+                @if (isAuth && !isEmp)
+                {
+                    <li class="nav-item"><a class="nav-link" asp-controller="Reports" asp-action="Index">@L["nav.myReports"]</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Reports" asp-action="Create">@L["nav.newReport"]</a></li>
+                }
+                @if (isAuth && isEmp)
+                {
+                    <li class="nav-item"><a class="nav-link" asp-controller="Staff" asp-action="Index">@L["nav.dashboard"]</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Items" asp-action="Index">@L["nav.items"]</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="MatchReview" asp-action="Index">@L["nav.matches"]</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="ClaimReview" asp-action="Index">@L["nav.claims"]</a></li>
+                }
+                @if (isAuth)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Alerts" asp-action="Index">@L["nav.notifications"]<vc:notifications-badge /></a>
+                    </li>
+                }
+            </ul>
+            <ul class="navbar-nav align-items-lg-center">
+                <li class="nav-item"><a class="nav-link" href="/lang/@otherLang?returnUrl=@current">@(L.IsRtl ? "English" : "العربية")</a></li>
+                @if (isAuth)
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">@fullName</a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">@L["nav.profile"]</a></li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item">@L["nav.logout"]</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">@L["auth.login"]</a></li>
+                    <li class="nav-item"><a class="btn btn-light btn-sm ms-lg-2" asp-controller="Account" asp-action="Register">@L["auth.register"]</a></li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-4 flex-grow-1">
+    @if (TempData["Success"] is string ok)
+    {
+        <div class="alert alert-success alert-dismissible fade show">@ok<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @if (TempData["Error"] is string err)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">@err<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+    @RenderBody()
+</main>
+
+<footer class="border-top py-3 text-center text-muted small">© @DateTime.Now.Year @L["app.name"] — @L["app.tagline"]</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

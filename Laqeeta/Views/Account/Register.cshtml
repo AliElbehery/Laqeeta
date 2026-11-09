@@ -1,0 +1,22 @@
+@model RegisterVm
+@{ ViewData["Title"] = L["auth.register"]; }
+<div class="row justify-content-center"><div class="col-md-8 col-lg-6">
+<div class="card shadow-sm"><div class="card-body p-4">
+    <h1 class="h4 mb-3">@L["auth.register"]</h1>
+    <partial name="_Errors" />
+    <form method="post" asp-action="Register">
+        <div class="mb-3"><label asp-for="FullName" class="form-label">@L["auth.fullName"]</label><input asp-for="FullName" class="form-control" autofocus /></div>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label asp-for="Username" class="form-label">@L["auth.username"]</label><input asp-for="Username" class="form-control" autocomplete="username" /></div>
+            <div class="col-md-6 mb-3"><label asp-for="Phone" class="form-label">@L["auth.phone"]</label><input asp-for="Phone" class="form-control" inputmode="tel" /></div>
+        </div>
+        <div class="mb-3"><label asp-for="Email" class="form-label">@L["auth.email"]</label><input asp-for="Email" type="email" class="form-control" autocomplete="email" /></div>
+        <div class="row">
+            <div class="col-md-6 mb-3"><label asp-for="Password" class="form-label">@L["auth.password"]</label><input asp-for="Password" class="form-control" autocomplete="new-password" /></div>
+            <div class="col-md-6 mb-3"><label asp-for="ConfirmPassword" class="form-label">@L["auth.confirmPassword"]</label><input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" /></div>
+        </div>
+        <div class="form-text mb-3">@L["auth.passwordHint"]</div>
+        <button class="btn btn-primary w-100">@L["auth.register"]</button>
+    </form>
+    <p class="text-center mt-3 mb-0">@L["auth.haveAccount"] <a asp-action="Login">@L["auth.login"]</a></p>
+</div></div></div></div>
