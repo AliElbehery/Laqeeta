@@ -144,6 +144,7 @@ if (app.Environment.IsDevelopment())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
     await DbSeeder.SeedAsync(db);
+    await DbSeeder.SeedAdminAsync(db, builder.Configuration);
 }
 
 app.UseHttpsRedirection();
