@@ -2,6 +2,7 @@ using Laqeeta.Core.Models;
 using Laqeeta.Core.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Laqeeta.Infrastructure.Data.Seed;
 
