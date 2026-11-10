@@ -18,6 +18,48 @@ public static class DbSeeder
         await SeedSampleDataAsync(db);
     }
 
+
+    /// <summary>
+    /// Creates the first administrator only when explicit credentials are supplied
+    /// through user-secrets or environment variables. Never ships a default admin password.
+    /// </summary>
+    public static async Task SeedAdminAsync(AppDbContext db, IConfiguration configuration)
+    {
+        if (await db.Users.AnyAsync(u => u.Role == UserRole.Admin)) return;
+
+        var username = configuration["AdminSeed:Username"]?.Trim();
+        var email = configuration["AdminSeed:Email"]?.Trim().ToLowerInvariant();
+        var password = configuration["AdminSeed:Password"];
+        var fullName = configuration["AdminSeed:FullName"]?.Trim();
+        var phone = configuration["AdminSeed:Phone"]?.Trim();
+
+        // No credentials configured: leave admin provisioning to the operator.
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email)
+            || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(fullName)
+            || string.IsNullOrWhiteSpace(phone))
+            return;
+
+        if (password.Length < 8 || !password.Any(char.IsLetter) || !password.Any(char.IsDigit))
+            throw new InvalidOperationException("AdminSeed:Password must be at least 8 characters and contain a letter and a digit.");
+
+        if (await db.Users.AnyAsync(u => u.Username == username || u.Email == email))
+            throw new InvalidOperationException("Admin seed username or email already belongs to another account.");
+
+        var admin = new User
+        {
+            FullName = fullName,
+            Username = username,
+            Email = email,
+            Phone = phone,
+            Role = UserRole.Admin,
+            IsActive = true
+        };
+        admin.PasswordHash = new PasswordHasher<User>().HashPassword(admin, password);
+
+        db.Users.Add(admin);
+        await db.SaveChangesAsync();
+    }
+
     private static async Task SeedMetroAsync(AppDbContext db)
     {
         if (await db.MetroLines.AnyAsync()) return;
