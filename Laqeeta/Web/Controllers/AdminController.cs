@@ -24,9 +24,9 @@ public class AdminController(AppDbContext db) : AppController
             TotalLostReports = await db.LostReports.CountAsync(ct),
             OpenLostReports = await db.LostReports.CountAsync(x => x.Status == LostReportStatus.Open, ct),
             TotalFoundItems = await db.FoundItems.CountAsync(ct),
-            ItemsInStorage = await db.FoundItems.CountAsync(x => x.Status == FoundItemStatus.InStorage, ct),
-            PendingClaims = await db.OwnershipClaims.CountAsync(x => x.Status == ClaimStatus.Pending, ct),
-            SuggestedMatches = await db.PossibleMatches.CountAsync(x => x.Status == MatchStatus.Suggested, ct)
+            ItemsInStorage = await db.FoundItems.CountAsync(x => x.ItemStatus == FoundItemStatus.InStorage, ct),
+            PendingClaims = await db.OwnershipClaims.CountAsync(x => x.ClaimStatus == ClaimStatus.Pending, ct),
+            SuggestedMatches = await db.PossibleMatches.CountAsync(x => x.MatchStatus == MatchStatus.Suggested, ct)
         };
 
         return View(vm);
