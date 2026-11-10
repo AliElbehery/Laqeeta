@@ -21,4 +21,8 @@
     <ProjectReference Include="..\laqeeta.Core\laqeeta.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\\Laqeeta.Application\\Laqeeta.Application.csproj" />
+  </ItemGroup>
+
 </Project>
