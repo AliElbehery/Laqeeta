@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\\Laqeeta.Application\\Laqeeta.Application.csproj" />
+    <ProjectReference Include="..\Laqeeta.Application\Laqeeta.Application.csproj" />
   </ItemGroup>
 
 </Project>
