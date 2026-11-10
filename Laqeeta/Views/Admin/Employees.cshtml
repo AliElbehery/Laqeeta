@@ -1,0 +1,47 @@
+@model AdminEmployeesVm
+@{
+    ViewData["Title"] = "إدارة الموظفين";
+}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div><h1 class="h3 mb-1">إدارة الموظفين</h1><p class="text-muted mb-0">عرض حسابات موظفي المحطات والتحكم في حالة الحساب.</p></div>
+    <a class="btn btn-primary" asp-controller="Employees" asp-action="Create">+ إضافة موظف جديد</a>
+</div>
+
+<form method="get" asp-action="Employees" class="row g-2 mb-3">
+    <div class="col-md-8"><input class="form-control" name="search" value="@Model.Search" placeholder="ابحث بالاسم أو اسم المستخدم أو البريد أو المحطة..." /></div>
+    <div class="col-auto"><button class="btn btn-outline-primary" type="submit">بحث</button></div>
+    <div class="col-auto"><a class="btn btn-outline-secondary" asp-action="Employees">مسح</a></div>
+</form>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light"><tr><th>الموظف</th><th>بيانات التواصل</th><th>المحطة</th><th>الحالة</th><th>تاريخ الإنشاء</th><th class="text-end">إجراء</th></tr></thead>
+            <tbody>
+            @if (Model.Employees.Count == 0)
+            {
+                <tr><td colspan="6" class="text-center text-muted py-4">لا يوجد موظفون مطابقون لعملية البحث.</td></tr>
+            }
+            else
+            {
+                @foreach (var employee in Model.Employees)
+                {
+                    <tr>
+                        <td><div class="fw-semibold">@employee.FullName</div><div class="small text-muted">@@@employee.Username</div></td>
+                        <td><div>@employee.Email</div><div class="small text-muted">@employee.Phone</div></td>
+                        <td>@(employee.StationName ?? "غير محددة")</td>
+                        <td><span class="badge @(employee.IsActive ? "bg-success" : "bg-secondary")">@(employee.IsActive ? "نشط" : "موقوف")</span></td>
+                        <td>@employee.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                        <td class="text-end">
+                            <form method="post" asp-action="ToggleEmployeeActive" asp-route-id="@employee.UserId" onsubmit="return confirm('هل أنت متأكد من تغيير حالة حساب هذا الموظف؟');">
+                                <button type="submit" class="btn btn-sm @(employee.IsActive ? "btn-outline-danger" : "btn-outline-success")">@(employee.IsActive ? "إيقاف الحساب" : "تفعيل الحساب")</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="mt-3"><a asp-action="Index" class="btn btn-link">← العودة إلى لوحة الإدارة</a></div>
