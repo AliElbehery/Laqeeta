@@ -6,16 +6,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Laqeeta.Api.Web.Controllers;
 
-/// <summary>Employee page: create another employee account for a station.</summary>
+/// <summary>Administrator page for creating employee accounts.</summary>
 [Route("staff/employees")]
-[Authorize(Policy = "EmployeeOnly")]
+[Authorize(Policy = "AdminOnly")]
 public class EmployeesController(IAuthService auth, IStationService stations) : AppController
 {
     [HttpGet("new")]
     public async Task<IActionResult> Create()
     {
         await LoadStationsAsync();
-        return View(new EmployeeFormVm { StationId = StationId });   // default: my own station
+        return View(new EmployeeFormVm());
     }
 
     [HttpPost("new")]
@@ -35,7 +35,7 @@ public class EmployeesController(IAuthService auth, IStationService stations) : 
         }
 
         Success(string.Format(L["msg.employeeCreated"], dto.Username));
-        return RedirectToAction(nameof(Create));
+        return RedirectToAction("Employees", "Admin");
     }
 
     private async Task LoadStationsAsync() => ViewData["Stations"] = await stations.GetStationsAsync();
