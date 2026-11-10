@@ -1,3 +1,5 @@
+using Laqeeta.Application.Services;
+using Laqeeta.Infrastructure.Repositories;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Models;
@@ -14,8 +16,24 @@ namespace Laqeeta.Tests;
 /// (SYSUTCDATETIME() defaults and "date"/"time" column types) are replaced.
 /// SQLite enforces foreign keys and unique indexes, so the tests behave like the real database.
 /// </summary>
-public sealed class SqliteAppDbContext(DbContextOptions<AppDbContext> options) : AppDbContext(options)
+public class SqliteAppDbContext(DbContextOptions<AppDbContext> options) : AppDbContext(options)
 {
+    /// <summary>
+    /// Test hook for race conditions: runs once, right before this context's next save. A test uses it to let
+    /// "another request" finish first, i.e. the service has already read its data when the competing change lands.
+    /// </summary>
+    public Func<Task>? BeforeNextSave { get; set; }
+
+    public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        if (BeforeNextSave is { } competingRequest)
+        {
+            BeforeNextSave = null;
+            await competingRequest();
+        }
+        return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -68,7 +86,7 @@ public sealed class Scenario : IDisposable
         Seed(db);
     }
 
-    public AppDbContext NewDb()
+    public SqliteAppDbContext NewDb()
         => new SqliteAppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseSqlite(_connection).Options);
 
     public void Dispose() => _connection.Dispose();
@@ -82,7 +100,7 @@ public sealed class Scenario : IDisposable
     public LostReportService Reports()
     {
         var db = NewDb();
-        return new LostReportService(db, new MatchingService(db));
+        return new LostReportService(new LostReportRepository(db), new MatchingService(db));
     }
 
     public FoundItemService Items()

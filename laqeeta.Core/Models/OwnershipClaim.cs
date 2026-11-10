@@ -2,8 +2,11 @@ using Laqeeta.Core.Enums;
 
 namespace Laqeeta.Core.Models;
 
-public class OwnershipClaim
+public class OwnershipClaim : IHasConcurrencyStamp
 {
+    /// <summary>Optimistic-concurrency token (see <see cref="IHasConcurrencyStamp"/>).</summary>
+    public Guid ConcurrencyStamp { get; set; }
+
     public long ClaimId { get; set; }
     public long MatchId { get; set; }                   // unique
     public long ClaimedBy { get; set; }

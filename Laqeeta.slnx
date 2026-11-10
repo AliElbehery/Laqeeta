@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="laqeeta.Core/laqeeta.Core.csproj" />
   <Project Path="Laqeeta.Infrastructure/Laqeeta.Infrastructure.csproj" />
+  <Project Path="Laqeeta.Application/Laqeeta.Application.csproj" />
   <Project Path="Laqeeta.Tests/Laqeeta.Tests.csproj" />
   <Project Path="Laqeeta/Laqeeta.csproj" />
 </Solution>

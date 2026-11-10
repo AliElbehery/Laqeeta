@@ -43,6 +43,11 @@ namespace Laqeeta.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("color");
 
+                    b.Property<Guid>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("concurrency_stamp");
+
                     b.Property<long>("CurrentStationId")
                         .HasColumnType("bigint")
                         .HasColumnName("current_station_id");
@@ -133,6 +138,11 @@ namespace Laqeeta.Infrastructure.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("color");
+
+                    b.Property<Guid>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("concurrency_stamp");
 
                     b.Property<string>("ContactPhone")
                         .IsRequired()
@@ -322,6 +332,11 @@ namespace Laqeeta.Infrastructure.Data.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("claimed_by");
 
+                    b.Property<Guid>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("concurrency_stamp");
+
                     b.Property<DateTime?>("HandedOverAt")
                         .HasColumnType("datetime2")
                         .HasColumnName("handed_over_at");
@@ -378,6 +393,11 @@ namespace Laqeeta.Infrastructure.Data.Migrations
                         .HasColumnName("match_id");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("MatchId"));
+
+                    b.Property<Guid>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()

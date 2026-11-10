@@ -30,6 +30,7 @@ public static class Err
     public const string UsernameTaken = "err.usernameTaken";
     public const string EmailTaken = "err.emailTaken";
     public const string UserExists = "err.userExists";
+    public const string ConcurrencyConflict = "err.concurrencyConflict";
     // business rules
     public const string PasswordSame = "err.passwordSame";
     public const string PasswordWeak = "err.passwordWeak";
@@ -120,6 +121,7 @@ public static class Messages
             [Err.UsernameTaken] = ("اسم المستخدم مستخدم قبل كده.", "Username is already taken."),
             [Err.EmailTaken] = ("الإيميل مسجّل قبل كده.", "Email is already registered."),
             [Err.UserExists] = ("اسم المستخدم أو الإيميل مسجّل قبل كده.", "Username or email is already registered."),
+            [Err.ConcurrencyConflict] = ("حد تاني عدّل نفس البيانات في نفس اللحظة. حدّث الصفحة وحاول تاني.", "Someone else changed the same data at the same time. Refresh and try again."),
 
             [Err.PasswordSame] = ("كلمة المرور الجديدة لازم تختلف عن الحالية.", "New password must be different from the current one."),
             [Err.PasswordWeak] = ("كلمة المرور لازم تكون 8 حروف على الأقل وتحتوي على حرف ورقم.", "Password must be at least 8 characters and contain a letter and a digit."),

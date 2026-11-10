@@ -2,8 +2,11 @@ using Laqeeta.Core.Enums;
 
 namespace Laqeeta.Core.Models;
 
-public class PossibleMatch
+public class PossibleMatch : IHasConcurrencyStamp
 {
+    /// <summary>Optimistic-concurrency token (see <see cref="IHasConcurrencyStamp"/>).</summary>
+    public Guid ConcurrencyStamp { get; set; }
+
     public long MatchId { get; set; }
     public long ReportId { get; set; }
     public long ItemId { get; set; }

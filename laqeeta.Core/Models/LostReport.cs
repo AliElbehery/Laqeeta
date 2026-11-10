@@ -2,8 +2,11 @@ using Laqeeta.Core.Enums;
 
 namespace Laqeeta.Core.Models;
 
-public class LostReport
+public class LostReport : IHasConcurrencyStamp
 {
+    /// <summary>Optimistic-concurrency token (see <see cref="IHasConcurrencyStamp"/>).</summary>
+    public Guid ConcurrencyStamp { get; set; }
+
     public long ReportId { get; set; }
     public long UserId { get; set; }
     public long LineId { get; set; }

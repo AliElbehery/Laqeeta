@@ -25,7 +25,21 @@ public class ClaimService(AppDbContext db) : IClaimService
 
         var claim = new OwnershipClaim { MatchId = matchId, ClaimedBy = userId };
         db.OwnershipClaims.Add(claim);
-        await db.SaveChangesAsync(ct);
+
+        // We only INSERT a claim, so nothing would notice if the report was cancelled (which rejects the match)
+        // after we read it. Marking the match as "updated" puts it in this save's WHERE concurrency_stamp = ... check:
+        // if it changed in the meantime, the whole save fails with a 409 and no claim is created.
+        db.Entry(match).Property(m => m.MatchStatus).IsModified = true;
+
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // two requests submitted at the same time: the unique index on match_id let only one claim in
+            throw new BusinessRuleException("A claim already exists for this match.", Err.ClaimExists);
+        }
         return claim;
     }
 

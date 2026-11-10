@@ -2,8 +2,11 @@ using Laqeeta.Core.Enums;
 
 namespace Laqeeta.Core.Models;
 
-public class FoundItem
+public class FoundItem : IHasConcurrencyStamp
 {
+    /// <summary>Optimistic-concurrency token (see <see cref="IHasConcurrencyStamp"/>).</summary>
+    public Guid ConcurrencyStamp { get; set; }
+
     public long ItemId { get; set; }
     public long FoundStationId { get; set; }
     public long CurrentStationId { get; set; }

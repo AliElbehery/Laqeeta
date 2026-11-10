@@ -1,5 +1,7 @@
+using Laqeeta.Application.Abstractions;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Infrastructure.Data;
+using Laqeeta.Infrastructure.Repositories;
 using Laqeeta.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,10 +16,10 @@ public static class DependencyInjection
             opt.UseSqlServer(connectionString)
                .UseSnakeCaseNamingConvention());   // columns => user_id, full_name ... like the ERD
 
+        services.AddScoped<ILostReportRepository, LostReportRepository>();
         services.AddScoped<IStationService, StationService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IMatchingService, MatchingService>();
-        services.AddScoped<ILostReportService, LostReportService>();
         services.AddScoped<IFoundItemService, FoundItemService>();
         services.AddScoped<IClaimService, ClaimService>();
         services.AddScoped<IAuthService, AuthService>();

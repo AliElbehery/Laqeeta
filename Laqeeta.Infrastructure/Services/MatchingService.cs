@@ -13,7 +13,33 @@ public class MatchingService(AppDbContext db) : IMatchingService
     // Simple rule-based matching:
     //   same category + same color + item found on a station of the line the passenger reported
     //   + item found on/after the lost date.
-    public async Task<IReadOnlyList<PossibleMatch>> GenerateForReportAsync(long reportId, CancellationToken ct = default)
+    public Task<IReadOnlyList<PossibleMatch>> GenerateForReportAsync(long reportId, CancellationToken ct = default)
+        => RetryOnceIfPairAlreadyExistsAsync(() => GenerateForReportCoreAsync(reportId, ct));
+
+    public Task<IReadOnlyList<PossibleMatch>> GenerateForItemAsync(long itemId, CancellationToken ct = default)
+        => RetryOnceIfPairAlreadyExistsAsync(() => GenerateForItemCoreAsync(itemId, ct));
+
+    /// <summary>
+    /// A new report and a new item can be matched by two requests at the same moment (one runs GenerateForReport,
+    /// the other GenerateForItem). The unique index on (report_id, item_id) lets only one of them save the pair, and
+    /// the other one fails. That is fine: throw its unsaved work away and look again - the queries skip pairs that
+    /// exist now. (ChangeTracker.Clear, not "detach the new rows": the tracked report/item still point to them.)
+    /// </summary>
+    private async Task<IReadOnlyList<PossibleMatch>> RetryOnceIfPairAlreadyExistsAsync(
+        Func<Task<IReadOnlyList<PossibleMatch>>> generate)
+    {
+        try
+        {
+            return await generate();
+        }
+        catch (DbUpdateException)
+        {
+            db.ChangeTracker.Clear();
+            return await generate();
+        }
+    }
+
+    private async Task<IReadOnlyList<PossibleMatch>> GenerateForReportCoreAsync(long reportId, CancellationToken ct)
     {
         var report = await db.LostReports.FirstOrDefaultAsync(r => r.ReportId == reportId, ct)
                      ?? throw new NotFoundException($"Report {reportId} not found.", Err.ReportNotFound);
@@ -51,7 +77,7 @@ public class MatchingService(AppDbContext db) : IMatchingService
         return created;
     }
 
-    public async Task<IReadOnlyList<PossibleMatch>> GenerateForItemAsync(long itemId, CancellationToken ct = default)
+    private async Task<IReadOnlyList<PossibleMatch>> GenerateForItemCoreAsync(long itemId, CancellationToken ct)
     {
         var item = await db.FoundItems
             .Include(i => i.FoundStation).ThenInclude(s => s.StationLines)
