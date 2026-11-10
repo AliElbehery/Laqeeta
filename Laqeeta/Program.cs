@@ -32,7 +32,7 @@ builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 builder.Services
     .AddAuthentication(o =>
     {
-        o.DefaultScheme = WebAuth.Smart;           // picks JWT for /api/*, cookie for the website
+        o.DefaultScheme = WebAuth.Smart;
         o.DefaultChallengeScheme = WebAuth.Smart;
     })
     .AddPolicyScheme(WebAuth.Smart, "JWT for /api, cookie for pages", o =>
@@ -53,7 +53,7 @@ builder.Services
     })
     .AddJwtBearer(o =>
     {
-        o.MapInboundClaims = false;   // keep "sub", "role", ... as written in the token
+        o.MapInboundClaims = false;
         o.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -71,9 +71,9 @@ builder.Services
 
 builder.Services.AddAuthorization(o =>
 {
-    // [Authorize(Policy = "EmployeeOnly")] / [Authorize(Policy = "PassengerOnly")]
     o.AddPolicy("EmployeeOnly", p => p.RequireRole("Employee"));
     o.AddPolicy("PassengerOnly", p => p.RequireRole("User"));
+    o.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
 });
 
 // brute-force protection for login / register: 10 requests per minute per IP
@@ -109,7 +109,7 @@ builder.Services.AddSwaggerGen(o =>
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
-    app.UseExceptionHandler("/error");          // friendly error page for the website
+    app.UseExceptionHandler("/error");
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -118,7 +118,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    // apply migrations + seed (dev only)
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
