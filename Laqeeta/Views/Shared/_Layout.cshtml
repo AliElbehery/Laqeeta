@@ -57,11 +57,6 @@
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">@fullName</a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">@L["nav.profile"]</a></li>
-                            @if (isEmp && !isAdmin)
-                            {
-                                <li><hr class="dropdown-divider" /></li>
-                                <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout">@L["nav.logout"]</a></li>
-                            }
                             <li><hr class="dropdown-divider" /></li>
                             <li>
                                 <form asp-controller="Account" asp-action="Logout" method="post">
