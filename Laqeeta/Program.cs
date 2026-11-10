@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Laqeeta.Api.Auth;
+using Laqeeta.Application;
 using Laqeeta.Api.Middleware;
 using Laqeeta.Api.Web;
 using Laqeeta.Core.Interfaces;
@@ -16,6 +17,7 @@ using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Missing ConnectionStrings:DefaultConnection"));

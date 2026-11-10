@@ -1,3 +1,5 @@
+using Laqeeta.Application.Services;
+using Laqeeta.Infrastructure.Repositories;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Models;
@@ -82,7 +84,7 @@ public sealed class Scenario : IDisposable
     public LostReportService Reports()
     {
         var db = NewDb();
-        return new LostReportService(db, new MatchingService(db));
+        return new LostReportService(new LostReportRepository(db), new MatchingService(db));
     }
 
     public FoundItemService Items()
