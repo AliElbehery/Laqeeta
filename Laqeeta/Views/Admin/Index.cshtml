@@ -1,0 +1,36 @@
+@model AdminDashboardVm
+@{
+    ViewData["Title"] = "لوحة تحكم الإدارة";
+}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1">لوحة تحكم الإدارة</h1>
+        <p class="text-muted mb-0">نظرة عامة على عمليات لقيطة وإدارة المحطات والموظفين.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary" asp-controller="Employees" asp-action="Create">+ إضافة موظف</a>
+        <a class="btn btn-outline-primary" asp-action="Employees">إدارة الموظفين</a>
+    </div>
+</div>
+
+<h2 class="h5 mb-3">إدارة المستخدمين والمحطات</h2>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">إجمالي الموظفين</div><div class="display-6 fw-bold">@Model.TotalEmployees</div><div class="small text-success">@Model.ActiveEmployees نشط</div><a asp-action="Employees" class="small">عرض الموظفين</a></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">المستخدمون</div><div class="display-6 fw-bold">@Model.TotalPassengers</div><div class="small text-muted">حسابات الركاب</div></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">المحطات</div><div class="display-6 fw-bold">@Model.TotalStations</div><div class="small text-muted">محطة مسجلة</div></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">بلاغات الفقد</div><div class="display-6 fw-bold">@Model.TotalLostReports</div><div class="small text-warning">@Model.OpenLostReports بلاغ مفتوح</div></div></div></div>
+</div>
+
+<h2 class="h5 mb-3">متابعة العمليات</h2>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">المعروضات المسجلة</div><div class="display-6 fw-bold">@Model.TotalFoundItems</div><div class="small text-muted">@Model.ItemsInStorage في المخزن</div></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">مطالبات الملكية المعلقة</div><div class="display-6 fw-bold">@Model.PendingClaims</div><div class="small text-muted">تحتاج مراجعة موظف المحطة</div></div></div></div>
+    <div class="col-6 col-xl-3"><div class="card shadow-sm h-100"><div class="card-body"><div class="text-muted small">مطابقات مقترحة</div><div class="display-6 fw-bold">@Model.SuggestedMatches</div><div class="small text-muted">بانتظار مراجعة المحطة</div></div></div></div>
+</div>
+
+<h2 class="h5 mb-3">اختصارات الإدارة</h2>
+<div class="row g-3">
+    <div class="col-md-4"><a class="card card-hover shadow-sm text-decoration-none h-100" asp-action="Employees"><div class="card-body"><div class="fs-3">👥</div><h3 class="h6 mt-2">إدارة الموظفين</h3><p class="text-muted small mb-0">عرض الموظفين والبحث عنهم وتفعيل أو إيقاف حساباتهم.</p></div></a></div>
+    <div class="col-md-4"><a class="card card-hover shadow-sm text-decoration-none h-100" asp-controller="Employees" asp-action="Create"><div class="card-body"><div class="fs-3">➕</div><h3 class="h6 mt-2">إضافة موظف</h3><p class="text-muted small mb-0">إنشاء حساب موظف وربطه بمحطة مترو.</p></div></a></div>
+    <div class="col-md-4"><div class="card shadow-sm h-100"><div class="card-body"><div class="fs-3">🔐</div><h3 class="h6 mt-2">صلاحيات الإدارة</h3><p class="text-muted small mb-0">الوصول إلى لوحة الإدارة وإدارة حسابات الموظفين. مراجعة البلاغات والمطابقات وتسليم المعروضات تتم من خلال موظفي المحطات.</p></div></div></div>
+</div>
