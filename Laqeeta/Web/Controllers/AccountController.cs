@@ -101,11 +101,21 @@ public class AccountController(IAuthService auth) : AppController
     [HttpGet("denied"), AllowAnonymous]
     public IActionResult Denied() => View();
 
-    // ----------------------------------------------------------------- helpers
     private IActionResult RedirectToHome(UserRole? role = null)
     {
-        var isEmployee = role is not null ? role == UserRole.Employee : User.IsInRole("Employee");
-        return isEmployee ? RedirectToAction("Index", "Staff") : RedirectToAction("Index", "Reports");
+        var currentRole = role?.ToString();
+        if (currentRole is null)
+        {
+            if (User.IsInRole("Admin")) return RedirectToAction("Index", "Admin");
+            if (User.IsInRole("Employee")) return RedirectToAction("Index", "Staff");
+            return RedirectToAction("Index", "Reports");
+        }
+
+        return role == UserRole.Admin
+            ? RedirectToAction("Index", "Admin")
+            : role == UserRole.Employee
+                ? RedirectToAction("Index", "Staff")
+                : RedirectToAction("Index", "Reports");
     }
 
     private async Task SignInAsync(UserDto u, bool persistent)
