@@ -8,7 +8,7 @@ using Laqeeta.Core.Interfaces;
 using Laqeeta.Infrastructure;
 using Laqeeta.Infrastructure.Data;
 using Laqeeta.Infrastructure.Data.Seed;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication;\nusing Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -50,6 +50,28 @@ builder.Services
         o.Cookie.HttpOnly = true;
         o.Cookie.SameSite = SameSiteMode.Lax;
         o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        // Re-check account status on every cookie-authenticated request so a disabled
+        // employee/admin cannot keep using an already-issued browser session.
+        o.Events.OnValidatePrincipal = async context =>
+        {
+            var userIdValue = context.Principal?.FindFirst(ClaimNames.UserId)?.Value;
+            var role = context.Principal?.FindFirst(ClaimNames.Role)?.Value;
+            if (!long.TryParse(userIdValue, out var userId) || string.IsNullOrWhiteSpace(role))
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(WebAuth.Scheme);
+                return;
+            }
+
+            var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            var isValid = await db.Users.AsNoTracking().AnyAsync(
+                user => user.UserId == userId && user.IsActive && user.Role.ToString() == role);
+            if (!isValid)
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(WebAuth.Scheme);
+            }
+        };
     })
     .AddJwtBearer(o =>
     {
