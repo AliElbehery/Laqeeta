@@ -108,3 +108,36 @@ public class EmployeeFormVm
     [Range(1, long.MaxValue, ErrorMessage = "val.select")]
     public long StationId { get; set; }
 }
+
+
+public class AdminDashboardVm
+{
+    public int TotalEmployees { get; set; }
+    public int ActiveEmployees { get; set; }
+    public int TotalPassengers { get; set; }
+    public int TotalStations { get; set; }
+    public int TotalLostReports { get; set; }
+    public int OpenLostReports { get; set; }
+    public int TotalFoundItems { get; set; }
+    public int ItemsInStorage { get; set; }
+    public int PendingClaims { get; set; }
+    public int SuggestedMatches { get; set; }
+}
+
+public class AdminEmployeeRowVm
+{
+    public long UserId { get; set; }
+    public string FullName { get; set; } = "";
+    public string Username { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string Phone { get; set; } = "";
+    public string? StationName { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class AdminEmployeesVm
+{
+    public string? Search { get; set; }
+    public IReadOnlyList<AdminEmployeeRowVm> Employees { get; set; } = [];
+}

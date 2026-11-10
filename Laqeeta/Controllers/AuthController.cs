@@ -37,9 +37,9 @@ public class AuthController(IAuthService auth) : ControllerBase
         return NoContent();
     }
 
-    /// <summary>An existing employee creates another employee account for a station.</summary>
+    /// <summary>Only an administrator can create employee accounts.</summary>
     [HttpPost("employees")]
-    [Authorize(Roles = "Employee")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<UserDto>> CreateEmployee(CreateEmployeeDto dto, CancellationToken ct)
         => StatusCode(StatusCodes.Status201Created, await auth.CreateEmployeeAsync(dto, ct));
 }

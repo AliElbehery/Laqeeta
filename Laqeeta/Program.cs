@@ -8,6 +8,7 @@ using Laqeeta.Core.Interfaces;
 using Laqeeta.Infrastructure;
 using Laqeeta.Infrastructure.Data;
 using Laqeeta.Infrastructure.Data.Seed;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -32,7 +33,7 @@ builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 builder.Services
     .AddAuthentication(o =>
     {
-        o.DefaultScheme = WebAuth.Smart;           // picks JWT for /api/*, cookie for the website
+        o.DefaultScheme = WebAuth.Smart;
         o.DefaultChallengeScheme = WebAuth.Smart;
     })
     .AddPolicyScheme(WebAuth.Smart, "JWT for /api, cookie for pages", o =>
@@ -50,10 +51,48 @@ builder.Services
         o.Cookie.HttpOnly = true;
         o.Cookie.SameSite = SameSiteMode.Lax;
         o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        // Re-check account status on every cookie-authenticated request so a disabled
+        // employee/admin cannot keep using an already-issued browser session.
+        o.Events.OnValidatePrincipal = async context =>
+        {
+            var userIdValue = context.Principal?.FindFirst(ClaimNames.UserId)?.Value;
+            var role = context.Principal?.FindFirst(ClaimNames.Role)?.Value;
+            if (!long.TryParse(userIdValue, out var userId) || string.IsNullOrWhiteSpace(role))
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(WebAuth.Scheme);
+                return;
+            }
+
+            var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            var isValid = await db.Users.AsNoTracking().AnyAsync(
+                user => user.UserId == userId && user.IsActive && user.Role.ToString() == role);
+            if (!isValid)
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(WebAuth.Scheme);
+            }
+        };
     })
     .AddJwtBearer(o =>
     {
-        o.MapInboundClaims = false;   // keep "sub", "role", ... as written in the token
+        o.MapInboundClaims = false;
+        // Reject already-issued API tokens when an account is disabled or its role changes.
+        o.Events.OnTokenValidated = async context =>
+        {
+            var userIdValue = context.Principal?.FindFirst(ClaimNames.UserId)?.Value;
+            var role = context.Principal?.FindFirst(ClaimNames.Role)?.Value;
+            if (!long.TryParse(userIdValue, out var userId) || string.IsNullOrWhiteSpace(role))
+            {
+                context.Fail("Invalid account claims.");
+                return;
+            }
+
+            var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+            var isValid = await db.Users.AsNoTracking().AnyAsync(
+                user => user.UserId == userId && user.IsActive && user.Role.ToString() == role);
+            if (!isValid) context.Fail("Account is inactive or its role has changed.");
+        };
         o.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -71,9 +110,9 @@ builder.Services
 
 builder.Services.AddAuthorization(o =>
 {
-    // [Authorize(Policy = "EmployeeOnly")] / [Authorize(Policy = "PassengerOnly")]
     o.AddPolicy("EmployeeOnly", p => p.RequireRole("Employee"));
     o.AddPolicy("PassengerOnly", p => p.RequireRole("User"));
+    o.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
 });
 
 // brute-force protection for login / register: 10 requests per minute per IP
@@ -109,7 +148,7 @@ builder.Services.AddSwaggerGen(o =>
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
-    app.UseExceptionHandler("/error");          // friendly error page for the website
+    app.UseExceptionHandler("/error");
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -118,11 +157,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    // apply migrations + seed (dev only)
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
     await DbSeeder.SeedAsync(db);
+    await DbSeeder.SeedAdminAsync(db, builder.Configuration);
 }
 
 app.UseHttpsRedirection();

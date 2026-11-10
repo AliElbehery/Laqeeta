@@ -1,6 +1,6 @@
 namespace Laqeeta.Core.Enums;
 
-public enum UserRole { User = 1, Employee = 2 }
+public enum UserRole { User = 1, Employee = 2, Admin = 3 }
 
 public enum ItemCategory
 {

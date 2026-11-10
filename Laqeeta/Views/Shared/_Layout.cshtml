@@ -1,5 +1,6 @@
 @{
     var isAuth = User.Identity?.IsAuthenticated == true;
+    var isAdmin = User.IsInRole("Admin");
     var isEmp = User.IsInRole("Employee");
     var fullName = User.FindFirst("full_name")?.Value ?? User.Identity?.Name;
     var current = Uri.EscapeDataString(Context.Request.Path + Context.Request.QueryString);
@@ -23,7 +24,13 @@
         </button>
         <div class="collapse navbar-collapse" id="nav">
             <ul class="navbar-nav me-auto">
-                @if (isAuth && !isEmp)
+                @if (isAdmin)
+                {
+                    <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Index">لوحة الإدارة</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Employees">الموظفون</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Employees" asp-action="Create">إضافة موظف</a></li>
+                }
+                else if (isAuth && !isEmp)
                 {
                     <li class="nav-item"><a class="nav-link" asp-controller="Reports" asp-action="Index">@L["nav.myReports"]</a></li>
                     <li class="nav-item"><a class="nav-link" asp-controller="Reports" asp-action="Create">@L["nav.newReport"]</a></li>
@@ -50,10 +57,6 @@
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">@fullName</a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">@L["nav.profile"]</a></li>
-                            @if (isEmp)
-                            {
-                                <li><a class="dropdown-item" asp-controller="Employees" asp-action="Create">@L["nav.addEmployee"]</a></li>
-                            }
                             <li><hr class="dropdown-divider" /></li>
                             <li>
                                 <form asp-controller="Account" asp-action="Logout" method="post">
