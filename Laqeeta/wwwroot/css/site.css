@@ -6,6 +6,13 @@ body { background: #f4f6f9; font-family: "Segoe UI", Tahoma, "Noto Naskh Arabic"
 .card-hover:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.12) !important; }
 .dropdown-menu form { margin: 0; }
 
+html:not([data-bs-theme="dark"]) {
+    --bs-body-color: #000;
+    --bs-emphasis-color: #000;
+    --bs-secondary-color: #000;
+    --bs-secondary-color-rgb: 0, 0, 0;
+}
+
 html[data-bs-theme="dark"] body { background-color: var(--bs-body-bg); }
 
 html[data-bs-theme="dark"] .table-light {
