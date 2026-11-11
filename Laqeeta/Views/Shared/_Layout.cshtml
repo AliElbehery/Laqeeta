@@ -59,7 +59,9 @@
             </ul>
             <ul class="navbar-nav align-items-lg-center">
                 <li class="nav-item">
-                    <button type="button" class="btn btn-outline-light btn-sm my-2 my-lg-0" id="theme-toggle" aria-pressed="false">@(L.IsRtl ? "الوضع الداكن" : "Dark mode")</button>
+                    <button type="button" class="btn btn-outline-light btn-sm my-2 my-lg-0" id="theme-toggle"
+                            data-dark-label="@(L.IsRtl ? "التبديل إلى الوضع الداكن" : "Switch to dark mode")"
+                            data-light-label="@(L.IsRtl ? "التبديل إلى الوضع الفاتح" : "Switch to light mode")">@(L.IsRtl ? "التبديل إلى الوضع الداكن" : "Switch to dark mode")</button>
                 </li>
                 <li class="nav-item"><a class="nav-link" href="/lang/@otherLang?returnUrl=@current">@(L.IsRtl ? "English" : "العربية")</a></li>
                 @if (isAuth)
@@ -105,11 +107,11 @@
     (() => {
         const themeToggle = document.getElementById("theme-toggle");
         const currentTheme = document.documentElement.getAttribute("data-bs-theme") || "light";
-        themeToggle.setAttribute("aria-pressed", String(currentTheme === "dark"));
+        themeToggle.textContent = currentTheme === "dark" ? themeToggle.dataset.lightLabel : themeToggle.dataset.darkLabel;
         themeToggle.addEventListener("click", () => {
             const nextTheme = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
             document.documentElement.setAttribute("data-bs-theme", nextTheme);
-            themeToggle.setAttribute("aria-pressed", String(nextTheme === "dark"));
+            themeToggle.textContent = nextTheme === "dark" ? themeToggle.dataset.lightLabel : themeToggle.dataset.darkLabel;
             localStorage.setItem("laqeeta-theme", nextTheme);
         });
     })();
