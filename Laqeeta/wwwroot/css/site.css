@@ -5,3 +5,19 @@ body { background: #f4f6f9; font-family: "Segoe UI", Tahoma, "Noto Naskh Arabic"
 .card-hover { transition: transform .15s ease, box-shadow .15s ease; }
 .card-hover:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.12) !important; }
 .dropdown-menu form { margin: 0; }
+
+html[data-bs-theme="dark"] body { background-color: var(--bs-body-bg); }
+
+html[data-bs-theme="dark"] .table-light {
+    --bs-table-color: var(--bs-body-color);
+    --bs-table-bg: var(--bs-tertiary-bg);
+    --bs-table-border-color: var(--bs-border-color);
+    --bs-table-striped-bg: var(--bs-secondary-bg);
+    --bs-table-striped-color: var(--bs-body-color);
+    --bs-table-active-bg: var(--bs-secondary-bg);
+    --bs-table-active-color: var(--bs-body-color);
+    --bs-table-hover-bg: var(--bs-secondary-bg);
+    --bs-table-hover-color: var(--bs-body-color);
+    color: var(--bs-table-color);
+    border-color: var(--bs-table-border-color);
+}
