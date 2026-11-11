@@ -1,8 +1,8 @@
 using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
-using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Models;
 using Laqeeta.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
@@ -104,8 +104,13 @@ public class AuthService(AppDbContext db, ITokenService tokens) : IAuthService
 
         var user = new User
         {
-            FullName = fullName.Trim(), Username = username, Email = email, Phone = phone.Trim(),
-            Role = role, StationId = stationId, IsActive = true
+            FullName = fullName.Trim(),
+            Username = username,
+            Email = email,
+            Phone = phone.Trim(),
+            Role = role,
+            StationId = stationId,
+            IsActive = true
         };
         user.PasswordHash = Hasher.HashPassword(user, password);
 

@@ -1,9 +1,9 @@
 using Laqeeta.Application.Services;
-using Laqeeta.Infrastructure.Repositories;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Models;
 using Laqeeta.Infrastructure.Data;
+using Laqeeta.Infrastructure.Repositories;
 using Laqeeta.Infrastructure.Services;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -93,8 +93,11 @@ public sealed class Scenario : IDisposable
 
     // ----------------------------------------------------------------- services (fresh context each)
     public MatchingService Matching() => new(NewDb());
+
     public ClaimService Claims() => new(NewDb());
+
     public NotificationService Notifications() => new(NewDb());
+
     public AuthService Auth() => new(NewDb(), new FakeTokenService());
 
     public LostReportService Reports()
@@ -216,7 +219,8 @@ public sealed class Scenario : IDisposable
         var sadat = new Station { StationName = "Sadat", AcceptsItems = true, StationLines = { new StationLine { Line = line1 } } };
         var attaba = new Station
         {
-            StationName = "Attaba", AcceptsItems = true,
+            StationName = "Attaba",
+            AcceptsItems = true,
             StationLines = { new StationLine { Line = line1 }, new StationLine { Line = line2 } }
         };
         var shubra = new Station { StationName = "Shubra", AcceptsItems = true, StationLines = { new StationLine { Line = line2 } } };
@@ -224,8 +228,13 @@ public sealed class Scenario : IDisposable
 
         static User U(string username, UserRole role, Station? station = null) => new()
         {
-            FullName = username, Username = username, Email = $"{username}@test.com", Phone = "01000000000",
-            PasswordHash = "not-a-real-hash", Role = role, Station = station
+            FullName = username,
+            Username = username,
+            Email = $"{username}@test.com",
+            Phone = "01000000000",
+            PasswordHash = "not-a-real-hash",
+            Role = role,
+            Station = station
         };
 
         var omar = U("omar", UserRole.User);

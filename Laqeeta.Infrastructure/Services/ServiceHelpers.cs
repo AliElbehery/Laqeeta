@@ -31,7 +31,13 @@ internal static class ServiceHelpers
                               string? code = null, string? param = null)
         => db.Notifications.Add(new Notification
         {
-            UserId = userId, Type = type, Title = title, Message = message,
-            Report = report, Match = match, Code = code, Param = param
+            UserId = userId,
+            Type = type,
+            Title = title,
+            Message = message,
+            Report = report,
+            Match = match,
+            Code = code,
+            Param = param
         });
 }

@@ -8,6 +8,7 @@ namespace Laqeeta.Tests;
 public class LostReportServiceTests : IDisposable
 {
     private readonly Scenario S = new();
+
     public void Dispose() => S.Dispose();
 
     private CreateLostReportDto Dto(long? lineId = null, string color = "Black", DateOnly? lostDate = null)

@@ -1,7 +1,7 @@
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
-using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
+using Laqeeta.Core.Localization;
 using Laqeeta.Core.Models;
 using Laqeeta.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +16,12 @@ public class NotificationService(AppDbContext db) : INotificationService
     {
         var n = new Notification
         {
-            UserId = userId, Type = type, Title = title, Message = message,
-            ReportId = reportId, MatchId = matchId
+            UserId = userId,
+            Type = type,
+            Title = title,
+            Message = message,
+            ReportId = reportId,
+            MatchId = matchId
         };
         db.Notifications.Add(n);
         await db.SaveChangesAsync(ct);

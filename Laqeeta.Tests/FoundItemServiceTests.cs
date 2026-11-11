@@ -8,6 +8,7 @@ namespace Laqeeta.Tests;
 public class FoundItemServiceTests : IDisposable
 {
     private readonly Scenario S = new();
+
     public void Dispose() => S.Dispose();
 
     private CreateFoundItemDto Dto(long? foundStationId = null, DateTime? foundAt = null, string color = "Black")

@@ -15,6 +15,7 @@ namespace Laqeeta.Tests;
 public class ConcurrencyTests : IDisposable
 {
     private readonly Scenario S = new();
+
     public void Dispose() => S.Dispose();
 
     private Task<MatchStatus> MatchStatusOf(long matchId)

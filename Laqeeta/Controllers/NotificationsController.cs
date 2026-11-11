@@ -1,8 +1,8 @@
 using Laqeeta.Api.Auth;
 using Laqeeta.Api.Mapping;
 using Laqeeta.Core.DTOs;
-using Laqeeta.Core.Localization;
 using Laqeeta.Core.Interfaces;
+using Laqeeta.Core.Localization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

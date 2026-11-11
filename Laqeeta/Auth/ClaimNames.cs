@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using Laqeeta.Core.Exceptions;
 using Laqeeta.Core.Localization;
+using System.Security.Claims;
 
 namespace Laqeeta.Api.Auth;
 

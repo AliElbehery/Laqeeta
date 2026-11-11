@@ -10,15 +10,21 @@ public interface ILoc
     string this[string key] { get; }
     string Lang { get; }
     bool IsRtl { get; }
+
     /// <summary>Localized name of an enum value.</summary>
     string Of<TEnum>(TEnum value) where TEnum : struct, Enum;
+
     /// <summary>UTC date-time -> local time text.</summary>
     string Dt(DateTime? utc);
+
     /// <summary>Business error (Err code) in the current language.</summary>
     string Error(DomainException ex);
+
     /// <summary>Notification title / body in the current language (old rows without a code show as stored).</summary>
     string Title(Notification n);
+
     string Body(Notification n);
+
     /// <summary>Label of a form field by its property name (used in validation messages).</summary>
     string Field(string propertyName);
 }
@@ -40,8 +46,11 @@ public class Loc(IHttpContextAccessor accessor) : ILoc
         => utc is null ? "—" : utc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
 
     public string Error(DomainException ex) => Messages.Error(ex, Lang);
+
     public string Title(Notification n) => Messages.Title(n.Code, n.Title, Lang);
+
     public string Body(Notification n) => Messages.Body(n.Code, n.Message, n.Param, Lang);
+
     public string Field(string propertyName)
         => Text.ContainsKey($"field.{propertyName}") ? this[$"field.{propertyName}"] : propertyName;
 

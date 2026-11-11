@@ -8,6 +8,7 @@ namespace Laqeeta.Tests;
 public class FullFlowTests : IDisposable
 {
     private readonly Scenario S = new();
+
     public void Dispose() => S.Dispose();
 
     [Fact]

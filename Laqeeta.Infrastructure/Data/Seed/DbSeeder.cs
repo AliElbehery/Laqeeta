@@ -1,5 +1,5 @@
-using Laqeeta.Core.Models;
 using Laqeeta.Core.Enums;
+using Laqeeta.Core.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +18,6 @@ public static class DbSeeder
         await SeedUsersAsync(db);
         await SeedSampleDataAsync(db);
     }
-
 
     /// <summary>
     /// Creates the first administrator only when explicit credentials are supplied
@@ -106,8 +105,13 @@ public static class DbSeeder
         {
             var u = new User
             {
-                FullName = fullName, Username = username, Email = email, Phone = phone,
-                Role = role, Station = station, IsActive = true
+                FullName = fullName,
+                Username = username,
+                Email = email,
+                Phone = phone,
+                Role = role,
+                Station = station,
+                IsActive = true
             };
             u.PasswordHash = hasher.HashPassword(u, DevPassword);
             return u;
@@ -133,8 +137,11 @@ public static class DbSeeder
 
         var report = new LostReport
         {
-            User = omar, Line = line1, ContactPhone = omar.Phone,
-            Category = ItemCategory.Wallet, Color = "Black",
+            User = omar,
+            Line = line1,
+            ContactPhone = omar.Phone,
+            Category = ItemCategory.Wallet,
+            Color = "Black",
             LostDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)),
             ApproximateTime = new TimeOnly(8, 30),
             Direction = "Towards Helwan",
@@ -143,8 +150,11 @@ public static class DbSeeder
 
         var item = new FoundItem
         {
-            FoundStation = sadat, CurrentStation = sadat, LoggedByUser = emp,
-            Category = ItemCategory.Wallet, Color = "Black",
+            FoundStation = sadat,
+            CurrentStation = sadat,
+            LoggedByUser = emp,
+            Category = ItemCategory.Wallet,
+            Color = "Black",
             Description = "Black leather wallet found on the platform.",
             PrivateIdentifyingDetails = "Contains a student card and a blue library card.",
             FoundAt = DateTime.UtcNow.AddHours(-20)
@@ -154,7 +164,9 @@ public static class DbSeeder
 
         db.Notifications.Add(new Notification
         {
-            User = omar, Report = report, Match = match,
+            User = omar,
+            Report = report,
+            Match = match,
             Type = NotificationType.MatchFound,
             Title = "Possible match for your lost item",
             Message = "An item similar to your report was found. Check your matches.",

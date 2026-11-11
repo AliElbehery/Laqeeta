@@ -1,5 +1,5 @@
-using Laqeeta.Core.Models;
 using Laqeeta.Core.Enums;
+using Laqeeta.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

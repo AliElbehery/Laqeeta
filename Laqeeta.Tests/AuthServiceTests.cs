@@ -9,6 +9,7 @@ namespace Laqeeta.Tests;
 public class AuthServiceTests : IDisposable
 {
     private readonly Scenario S = new();
+
     public void Dispose() => S.Dispose();
 
     private static RegisterDto Reg(string username = "ali", string email = "Ali@Test.com", string password = "Passw0rd!")

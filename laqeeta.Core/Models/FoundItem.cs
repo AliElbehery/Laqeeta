@@ -14,8 +14,10 @@ public class FoundItem : IHasConcurrencyStamp
     public ItemCategory Category { get; set; }
     public string Color { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+
     /// <summary>Hidden from the public; used by employees to verify ownership.</summary>
     public string? PrivateIdentifyingDetails { get; set; }
+
     public DateTime FoundAt { get; set; }
     public DateTime LoggedAt { get; set; } = DateTime.UtcNow;
     public FoundItemStatus ItemStatus { get; set; } = FoundItemStatus.InStorage;

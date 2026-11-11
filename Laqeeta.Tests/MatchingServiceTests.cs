@@ -8,6 +8,7 @@ namespace Laqeeta.Tests;
 public class MatchingServiceTests : IDisposable
 {
     private readonly Scenario S = new();
+
     public void Dispose() => S.Dispose();
 
     // ------------------------------------------------------------ GenerateForReport

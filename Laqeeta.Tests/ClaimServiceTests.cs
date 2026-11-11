@@ -9,9 +9,11 @@ namespace Laqeeta.Tests;
 public class ClaimServiceTests : IDisposable
 {
     private readonly Scenario S = new();
+
     public void Dispose() => S.Dispose();
 
     private static VerifyClaimDto Approve(string? notes = null) => new(true, true, true, notes);
+
     private static VerifyClaimDto Reject(string? notes = null) => new(false, true, false, notes);
 
     private Task<T> LoadMatchState<T>(long matchId, Func<Laqeeta.Core.Models.PossibleMatch, T> pick)

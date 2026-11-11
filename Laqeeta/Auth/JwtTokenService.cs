@@ -1,9 +1,9 @@
-using System.Text;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Laqeeta.Api.Auth;
 
@@ -19,8 +19,8 @@ public class JwtTokenService(IOptions<JwtOptions> options) : ITokenService
         var claims = new Dictionary<string, object>
         {
             [ClaimNames.UserId] = user.UserId.ToString(),
-            [ClaimNames.Name]   = user.Username,
-            [ClaimNames.Role]   = user.Role.ToString()
+            [ClaimNames.Name] = user.Username,
+            [ClaimNames.Role] = user.Role.ToString()
         };
         if (user.StationId is not null)
             claims[ClaimNames.StationId] = user.StationId.Value.ToString();

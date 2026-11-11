@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace Laqeeta.Api.Web.Models;
 
@@ -14,13 +14,18 @@ public class LoginVm
 public class RegisterVm
 {
     [Required(ErrorMessage = "val.required"), StringLength(150, MinimumLength = 2, ErrorMessage = "val.length")] public string FullName { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), StringLength(50, MinimumLength = 3, ErrorMessage = "val.length"), RegularExpression(@"^[A-Za-z0-9._-]+$",
         ErrorMessage = "val.username")]
     public string Username { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), EmailAddress(ErrorMessage = "val.email"), StringLength(256, ErrorMessage = "val.length")] public string Email { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), RegularExpression(@"^\+?[0-9]{8,15}$", ErrorMessage = "val.phone")]
     public string Phone { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), StringLength(100, MinimumLength = 8, ErrorMessage = "val.passwordLength"), DataType(DataType.Password)] public string Password { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), Compare(nameof(Password), ErrorMessage = "val.compare"), DataType(DataType.Password)]
     public string ConfirmPassword { get; set; } = "";
 }
@@ -29,6 +34,7 @@ public class ChangePasswordVm
 {
     [Required(ErrorMessage = "val.required"), DataType(DataType.Password)] public string CurrentPassword { get; set; } = "";
     [Required(ErrorMessage = "val.required"), StringLength(100, MinimumLength = 8, ErrorMessage = "val.passwordLength"), DataType(DataType.Password)] public string NewPassword { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), Compare(nameof(NewPassword), ErrorMessage = "val.compare"), DataType(DataType.Password)]
     public string ConfirmNewPassword { get; set; } = "";
 }
@@ -94,21 +100,26 @@ public class EmployeeFormVm
 {
     [Required(ErrorMessage = "val.required"), StringLength(150, MinimumLength = 2, ErrorMessage = "val.length")]
     public string FullName { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), StringLength(50, MinimumLength = 3, ErrorMessage = "val.length"),
      RegularExpression(@"^[A-Za-z0-9._-]+$", ErrorMessage = "val.username")]
     public string Username { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), EmailAddress(ErrorMessage = "val.email"), StringLength(256, ErrorMessage = "val.length")]
     public string Email { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), RegularExpression(@"^\+?[0-9]{8,15}$", ErrorMessage = "val.phone")]
     public string Phone { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), StringLength(100, MinimumLength = 8, ErrorMessage = "val.passwordLength"), DataType(DataType.Password)]
     public string Password { get; set; } = "";
+
     [Required(ErrorMessage = "val.required"), Compare(nameof(Password), ErrorMessage = "val.compare"), DataType(DataType.Password)]
     public string ConfirmPassword { get; set; } = "";
+
     [Range(1, long.MaxValue, ErrorMessage = "val.select")]
     public long StationId { get; set; }
 }
-
 
 public class AdminDashboardVm
 {

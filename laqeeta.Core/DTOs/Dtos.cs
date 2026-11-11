@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using Laqeeta.Core.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Laqeeta.Core.DTOs;
 

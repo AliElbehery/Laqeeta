@@ -26,7 +26,10 @@ public class StationService(AppDbContext db) : IStationService
         var rows = await query.OrderBy(s => s.StationName)
             .Select(s => new
             {
-                s.StationId, s.StationName, s.LocationDetail, s.AcceptsItems,
+                s.StationId,
+                s.StationName,
+                s.LocationDetail,
+                s.AcceptsItems,
                 Lines = s.StationLines.Select(sl => sl.Line.LineName).ToList()
             })
             .ToListAsync(ct);

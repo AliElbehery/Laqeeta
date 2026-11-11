@@ -17,11 +17,11 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             var (status, title) = ex switch
             {
                 UnauthorizedException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
-                NotFoundException     => (StatusCodes.Status404NotFound, "Not found"),
-                ConflictException     => (StatusCodes.Status409Conflict, "Conflict"),
-                ForbiddenException    => (StatusCodes.Status403Forbidden, "Forbidden"),
+                NotFoundException => (StatusCodes.Status404NotFound, "Not found"),
+                ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
+                ForbiddenException => (StatusCodes.Status403Forbidden, "Forbidden"),
                 BusinessRuleException => (StatusCodes.Status400BadRequest, "Business rule violated"),
-                _                     => (StatusCodes.Status500InternalServerError, "Unexpected error")
+                _ => (StatusCodes.Status500InternalServerError, "Unexpected error")
             };
 
             if (status == StatusCodes.Status500InternalServerError)

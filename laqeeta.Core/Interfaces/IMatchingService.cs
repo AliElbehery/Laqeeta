@@ -12,9 +12,11 @@ public interface IMatchingService
     Task<IReadOnlyList<PossibleMatch>> GenerateForItemAsync(long itemId, CancellationToken ct = default);
 
     Task<IReadOnlyList<PossibleMatch>> GetForReportAsync(long reportId, long userId, CancellationToken ct = default);
+
     /// <summary>Matches whose item is currently held at the given station (employee inbox).</summary>
     Task<IReadOnlyList<PossibleMatch>> GetForStationAsync(long stationId, MatchStatus? status = null, CancellationToken ct = default);
 
     Task ConfirmAsync(long matchId, long employeeId, CancellationToken ct = default);
+
     Task RejectAsync(long matchId, long employeeId, CancellationToken ct = default);
 }

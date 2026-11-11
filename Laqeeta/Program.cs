@@ -1,10 +1,7 @@
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.RateLimiting;
 using Laqeeta.Api.Auth;
-using Laqeeta.Application;
 using Laqeeta.Api.Middleware;
 using Laqeeta.Api.Web;
+using Laqeeta.Application;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Infrastructure;
 using Laqeeta.Infrastructure.Data;
@@ -14,6 +11,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using System.Text;
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 

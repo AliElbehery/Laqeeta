@@ -7,6 +7,7 @@ public static class Err
 {
     // not found
     public const string ReportNotFound = "err.reportNotFound";
+
     public const string ItemNotFound = "err.itemNotFound";
     public const string MatchNotFound = "err.matchNotFound";
     public const string ClaimNotFound = "err.claimNotFound";
@@ -16,8 +17,10 @@ public static class Err
     public const string TargetStationNotFound = "err.targetStationNotFound";
     public const string NotificationNotFound = "err.notificationNotFound";
     public const string LineNotFound = "err.lineNotFound";
+
     // forbidden / auth
     public const string NotYourReport = "err.notYourReport";
+
     public const string NotYourNotification = "err.notYourNotification";
     public const string NotYourMatch = "err.notYourMatch";
     public const string WrongStation = "err.wrongStation";
@@ -26,13 +29,17 @@ public static class Err
     public const string InvalidCredentials = "err.invalidCredentials";
     public const string InvalidToken = "err.invalidToken";
     public const string CurrentPasswordWrong = "err.currentPasswordWrong";
+
     // conflicts
     public const string UsernameTaken = "err.usernameTaken";
+
     public const string EmailTaken = "err.emailTaken";
     public const string UserExists = "err.userExists";
     public const string ConcurrencyConflict = "err.concurrencyConflict";
+
     // business rules
     public const string PasswordSame = "err.passwordSame";
+
     public const string PasswordWeak = "err.passwordWeak";
     public const string ConfirmNeedsSuggested = "err.confirmNeedsSuggested";
     public const string RejectNeedsSuggested = "err.rejectNeedsSuggested";

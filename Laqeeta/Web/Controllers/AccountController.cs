@@ -1,14 +1,13 @@
-using System.Security.Claims;
 using Laqeeta.Api.Auth;
 using Laqeeta.Api.Web.Models;
 using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Enums;
-using Laqeeta.Core.Exceptions;
 using Laqeeta.Core.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using System.Security.Claims;
 
 namespace Laqeeta.Api.Web.Controllers;
 

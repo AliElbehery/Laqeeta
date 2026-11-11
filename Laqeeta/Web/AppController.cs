@@ -14,6 +14,7 @@ public abstract class AppController : Controller
     protected ILoc L => HttpContext.RequestServices.GetRequiredService<ILoc>();
 
     protected void Success(string message) => TempData["Success"] = message;
+
     protected void Error(string message) => TempData["Error"] = message;
 
     protected static bool IsDomain(Exception ex) => ex is DomainException;

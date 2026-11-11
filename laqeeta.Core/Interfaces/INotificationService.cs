@@ -10,6 +10,8 @@ public interface INotificationService
                                    long? reportId = null, long? matchId = null, CancellationToken ct = default);
 
     Task<IReadOnlyList<Notification>> GetForUserAsync(long userId, bool unreadOnly = false, CancellationToken ct = default);
+
     Task MarkAsReadAsync(long notificationId, long userId, CancellationToken ct = default);
+
     Task MarkAllAsReadAsync(long userId, CancellationToken ct = default);
 }
