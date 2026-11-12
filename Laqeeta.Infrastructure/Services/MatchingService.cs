@@ -50,7 +50,9 @@ public class MatchingService(AppDbContext db) : IMatchingService
         var category = report.Category;
         var color = report.Color;
         var lineId = report.LineId;
-        var lostFrom = report.LostDate.ToDateTime(TimeOnly.MinValue);
+        var lostFromLocal = report.LostDate.ToDateTime(TimeOnly.MinValue);
+        var lostFromUtc = TimeZoneInfo.ConvertTimeToUtc(lostFromLocal, EgyptTimeZone);
+        var lostFrom = new DateTimeOffset(lostFromUtc, TimeSpan.Zero);
 
         var items = await db.FoundItems
             .Where(i => i.ItemStatus == FoundItemStatus.InStorage
@@ -90,7 +92,8 @@ public class MatchingService(AppDbContext db) : IMatchingService
         var category = item.Category;
         var color = item.Color;
         var lineIds = item.FoundStation.StationLines.Select(sl => sl.LineId).ToList();
-        var foundDate = DateOnly.FromDateTime(item.FoundAt);
+        var foundAtEgypt = TimeZoneInfo.ConvertTime(item.FoundAt, EgyptTimeZone);
+        var foundDate = DateOnly.FromDateTime(foundAtEgypt.DateTime);
 
         var reports = await db.LostReports
             .Where(r => r.Status != LostReportStatus.Closed
@@ -195,6 +198,20 @@ public class MatchingService(AppDbContext db) : IMatchingService
                .Include(m => m.Item).ThenInclude(i => i.CurrentStation)
                .FirstOrDefaultAsync(m => m.MatchId == matchId, ct)
            ?? throw new NotFoundException($"Match {matchId} not found.", Err.MatchNotFound);
+
+    private static readonly TimeZoneInfo EgyptTimeZone = FindEgyptTimeZone();
+
+    private static TimeZoneInfo FindEgyptTimeZone()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time");
+        }
+    }
 
     private static void EnsureCanHandle(User employee, PossibleMatch match)
     {
