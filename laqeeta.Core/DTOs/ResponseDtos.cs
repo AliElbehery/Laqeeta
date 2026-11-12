@@ -11,14 +11,14 @@ public record LostReportPageDto(IReadOnlyList<LostReportDto> Items, string? Next
 
 /// <summary>What a passenger may see about a found item (no private identifying details).</summary>
 public record ItemPublicDto(
-    long ItemId, ItemCategory Category, string Color, string Description, DateTime FoundAt,
+    long ItemId, ItemCategory Category, string Color, string Description, DateTimeOffset FoundAt,
     long CurrentStationId, string? CurrentStationName);
 
 /// <summary>Employee view of a found item (includes the private identifying details).</summary>
 public record FoundItemDto(
     long ItemId, long FoundStationId, string? FoundStationName, long CurrentStationId, string? CurrentStationName,
     long LoggedBy, ItemCategory Category, string Color, string Description, string? PrivateIdentifyingDetails,
-    DateTime FoundAt, DateTime LoggedAt, FoundItemStatus ItemStatus, DateTime? ReturnedAt);
+    DateTimeOffset FoundAt, DateTime LoggedAt, FoundItemStatus ItemStatus, DateTime? ReturnedAt);
 
 public record PassengerMatchDto(long MatchId, long ReportId, MatchStatus MatchStatus, DateTime CreatedAt,
                                 ItemPublicDto Item);

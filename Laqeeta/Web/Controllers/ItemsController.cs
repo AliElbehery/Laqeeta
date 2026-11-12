@@ -25,7 +25,7 @@ public class ItemsController(IFoundItemService items, IStationService stations) 
     public async Task<IActionResult> Create()
     {
         await LoadStationsAsync();
-        return View(new FoundItemFormVm { FoundStationId = StationId });
+        return View(new FoundItemFormVm { FoundStationId = StationId, FoundAt = EgyptTimeZone.ToLocalDateTime(DateTimeOffset.UtcNow) });
     }
 
     [HttpPost("new")]
@@ -34,8 +34,13 @@ public class ItemsController(IFoundItemService items, IStationService stations) 
         await LoadStationsAsync();
         if (!ModelState.IsValid) return View(vm);
 
-        // the form sends local time; the system stores UTC
-        var foundAtUtc = DateTime.SpecifyKind(vm.FoundAt, DateTimeKind.Local).ToUniversalTime();
+        // datetime-local has no offset, so interpret it explicitly as Egypt local time.
+        if (!EgyptTimeZone.TryConvertLocalToUtc(vm.FoundAt, out var foundAtUtc))
+        {
+            ModelState.AddModelError(nameof(vm.FoundAt),
+                "The selected local time is invalid or ambiguous because of a daylight-saving-time transition. Choose another time.");
+            return View(vm);
+        }
         var dto = new CreateFoundItemDto(vm.FoundStationId, vm.Category, vm.Color.Trim(), vm.Description.Trim(),
             string.IsNullOrWhiteSpace(vm.PrivateIdentifyingDetails) ? null : vm.PrivateIdentifyingDetails.Trim(),
             foundAtUtc);

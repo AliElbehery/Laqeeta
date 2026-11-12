@@ -18,7 +18,7 @@ public class FoundItem : IHasConcurrencyStamp
     /// <summary>Hidden from the public; used by employees to verify ownership.</summary>
     public string? PrivateIdentifyingDetails { get; set; }
 
-    public DateTime FoundAt { get; set; }
+    public DateTimeOffset FoundAt { get; set; }
     public DateTime LoggedAt { get; set; } = DateTime.UtcNow;
     public FoundItemStatus ItemStatus { get; set; } = FoundItemStatus.InStorage;
     public DateTime? ReturnedAt { get; set; }

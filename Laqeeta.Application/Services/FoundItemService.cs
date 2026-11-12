@@ -22,7 +22,7 @@ public class FoundItemService(IFoundItemRepository repository, IMatchingService 
         if (!await repository.StationExistsAsync(dto.FoundStationId, ct))
             throw new NotFoundException("Found-at station not found.", Err.FoundStationNotFound);
 
-        if (dto.FoundAt > DateTime.UtcNow.AddMinutes(5))
+        if (dto.FoundAt > DateTimeOffset.UtcNow.AddMinutes(5))
             throw new BusinessRuleException("Found time cannot be in the future.", Err.FoundTimeFuture);
 
         var item = new FoundItem
@@ -34,7 +34,7 @@ public class FoundItemService(IFoundItemRepository repository, IMatchingService 
             Color = dto.Color.Trim(),
             Description = dto.Description,
             PrivateIdentifyingDetails = dto.PrivateIdentifyingDetails,
-            FoundAt = dto.FoundAt
+            FoundAt = dto.FoundAt.ToUniversalTime()
         };
 
         await repository.AddAsync(item, ct);

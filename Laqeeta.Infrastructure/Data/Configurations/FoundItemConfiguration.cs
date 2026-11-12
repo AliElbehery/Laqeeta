@@ -16,6 +16,7 @@ public class FoundItemConfiguration : IEntityTypeConfiguration<FoundItem>
         b.Property(x => x.Color).IsRequired().HasMaxLength(50);
         b.Property(x => x.Description).IsRequired();
         b.Property(x => x.PrivateIdentifyingDetails);
+        b.Property(x => x.FoundAt).HasColumnType("datetimeoffset");
         b.Property(x => x.LoggedAt).HasDefaultValueSql("SYSUTCDATETIME()");
         b.Property(x => x.ItemStatus).HasConversion<string>().HasMaxLength(20)
             .HasDefaultValue(FoundItemStatus.InStorage);
