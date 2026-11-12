@@ -54,6 +54,19 @@ public class LostReportService(
         CancellationToken ct = default)
         => repository.GetByUserAsync(userId, ct);
 
+    public async Task<(IReadOnlyList<LostReport> Items, LostReportCursor? NextCursor)> GetPageByUserAsync(
+        long userId, LostReportCursor? after = null, CancellationToken ct = default)
+    {
+        const int pageSize = 10;
+        var reports = await repository.GetPageByUserAsync(userId, after, pageSize + 1, ct);
+        if (reports.Count <= pageSize)
+            return (reports, null);
+
+        var items = reports.Take(pageSize).ToArray();
+        var last = items[^1];
+        return (items, new LostReportCursor(last.CreatedAt, last.ReportId));
+    }
+
     public async Task<LostReport> GetByIdAsync(
         long reportId,
         long userId,

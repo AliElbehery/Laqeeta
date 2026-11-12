@@ -7,6 +7,8 @@ public interface ILostReportService
 {
     Task<LostReport> CreateAsync(long userId, CreateLostReportDto dto, CancellationToken ct = default);
     Task<IReadOnlyList<LostReport>> GetByUserAsync(long userId, CancellationToken ct = default);
+    Task<(IReadOnlyList<LostReport> Items, LostReportCursor? NextCursor)> GetPageByUserAsync(
+        long userId, LostReportCursor? after = null, CancellationToken ct = default);
     Task<LostReport> GetByIdAsync(long reportId, long userId, CancellationToken ct = default);
     Task CancelAsync(long reportId, long userId, CancellationToken ct = default);
 }
