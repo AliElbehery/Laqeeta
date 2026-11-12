@@ -12,10 +12,6 @@ public interface ILostReportRepository
     Task<bool> MetroLineExistsAsync(long lineId, CancellationToken ct = default);
     Task AddAsync(LostReport report, CancellationToken ct = default);
     Task<IReadOnlyList<LostReport>> GetByUserAsync(long userId, CancellationToken ct = default);
-<<<<<<< HEAD
-
-=======
->>>>>>> 3243d7eab809891ff1b2f75e29287253a336a02b
     Task<IReadOnlyList<LostReport>> GetPageByUserAsync(
         long userId, LostReportCursor? after, int limit, CancellationToken ct = default);
     Task<LostReport?> GetByIdWithLineAsync(long reportId, CancellationToken ct = default);
