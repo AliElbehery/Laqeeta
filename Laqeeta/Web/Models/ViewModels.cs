@@ -65,7 +65,7 @@ public class FoundItemFormVm
     [Required(ErrorMessage = "val.required"), StringLength(50, ErrorMessage = "val.length")] public string Color { get; set; } = "";
     [Required(ErrorMessage = "val.required"), StringLength(2000, ErrorMessage = "val.length")] public string Description { get; set; } = "";
     [StringLength(2000, ErrorMessage = "val.length")] public string? PrivateIdentifyingDetails { get; set; }
-    public DateTime FoundAt { get; set; } = DateTime.Now;
+    public DateTime FoundAt { get; set; }
 }
 
 public class TransferVm
