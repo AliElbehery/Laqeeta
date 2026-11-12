@@ -12,6 +12,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - @L["app.name"]</title>
+    <script>
+        (() => {
+            const savedTheme = localStorage.getItem("laqeeta-theme");
+            if (savedTheme === "dark" || savedTheme === "light") {
+                document.documentElement.setAttribute("data-bs-theme", savedTheme);
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/@(L.IsRtl ? "bootstrap.rtl.min.css" : "bootstrap.min.css")" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
@@ -50,6 +58,11 @@
                 }
             </ul>
             <ul class="navbar-nav align-items-lg-center">
+                <li class="nav-item">
+                    <button type="button" class="btn btn-outline-light btn-sm my-2 my-lg-0" id="theme-toggle"
+                            data-dark-label="@(L.IsRtl ? "التبديل إلى الوضع الداكن" : "Switch to dark mode")"
+                            data-light-label="@(L.IsRtl ? "التبديل إلى الوضع الفاتح" : "Switch to light mode")">@(L.IsRtl ? "التبديل إلى الوضع الداكن" : "Switch to dark mode")</button>
+                </li>
                 <li class="nav-item"><a class="nav-link" href="/lang/@otherLang?returnUrl=@current">@(L.IsRtl ? "English" : "العربية")</a></li>
                 @if (isAuth)
                 {
@@ -90,6 +103,19 @@
 
 <footer class="border-top py-3 text-center text-muted small">© @DateTime.Now.Year @L["app.name"] — @L["app.tagline"]</footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (() => {
+        const themeToggle = document.getElementById("theme-toggle");
+        const currentTheme = document.documentElement.getAttribute("data-bs-theme") || "light";
+        themeToggle.textContent = currentTheme === "dark" ? themeToggle.dataset.lightLabel : themeToggle.dataset.darkLabel;
+        themeToggle.addEventListener("click", () => {
+            const nextTheme = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-bs-theme", nextTheme);
+            themeToggle.textContent = nextTheme === "dark" ? themeToggle.dataset.lightLabel : themeToggle.dataset.darkLabel;
+            localStorage.setItem("laqeeta-theme", nextTheme);
+        });
+    })();
+</script>
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -17,10 +17,11 @@ public static class DependencyInjection
                .UseSnakeCaseNamingConvention());   // columns => user_id, full_name ... like the ERD
 
         services.AddScoped<ILostReportRepository, LostReportRepository>();
+        services.AddScoped<IFoundItemRepository, FoundItemRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IStationService, StationService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IMatchingService, MatchingService>();
-        services.AddScoped<IFoundItemService, FoundItemService>();
         services.AddScoped<IClaimService, ClaimService>();
         services.AddScoped<IAuthService, AuthService>();
 
