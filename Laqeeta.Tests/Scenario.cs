@@ -119,7 +119,8 @@ public sealed class Scenario : IDisposable
     // ----------------------------------------------------------------- arrange helpers
     public async Task<LostReport> AddReportAsync(
         long? userId = null, ItemCategory category = ItemCategory.Wallet, string color = "Black",
-        long? lineId = null, DateOnly? lostDate = null, LostReportStatus status = LostReportStatus.Open)
+        long? lineId = null, DateOnly? lostDate = null, LostReportStatus status = LostReportStatus.Open,
+        DateTime? createdAt = null)
     {
         using var db = NewDb();
         var report = new LostReport
@@ -131,7 +132,8 @@ public sealed class Scenario : IDisposable
             Color = color,
             LostDate = lostDate ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)),
             Description = "test report",
-            Status = status
+            Status = status,
+            CreatedAt = createdAt ?? DateTime.UtcNow
         };
         db.LostReports.Add(report);
         await db.SaveChangesAsync();

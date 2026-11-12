@@ -70,6 +70,40 @@ public class LostReportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GetPageByUser_continues_past_tied_timestamps_and_only_returns_my_reports()
+    {
+        var createdAt = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc).AddTicks(7);
+        var tiedReportIds = new List<long>();
+        for (var i = 0; i < 12; i++)
+            tiedReportIds.Add((await S.AddReportAsync(S.OmarId, createdAt: createdAt)).ReportId);
+        var older = await S.AddReportAsync(S.OmarId, createdAt: createdAt.AddTicks(-1));
+        await S.AddReportAsync(S.SaraId, createdAt: createdAt);
+        await S.AddReportAsync(S.SaraId, createdAt: older.CreatedAt);
+
+        tiedReportIds.Reverse();
+        var (first, cursor) = await S.Reports().GetPageByUserAsync(S.OmarId);
+        Assert.Equal(tiedReportIds.Take(10), first.Select(report => report.ReportId));
+        Assert.NotNull(cursor);
+
+        var (second, nextCursor) = await S.Reports().GetPageByUserAsync(S.OmarId, cursor);
+        Assert.Equal(tiedReportIds.Skip(10).Append(older.ReportId), second.Select(report => report.ReportId));
+        Assert.Null(nextCursor);
+    }
+
+    [Fact]
+    public async Task GetPageByUser_returns_no_cursor_when_the_last_page_is_full()
+    {
+        for (var i = 0; i < 10; i++)
+            await S.AddReportAsync(S.OmarId);
+        await S.AddReportAsync(S.SaraId);
+
+        var (items, cursor) = await S.Reports().GetPageByUserAsync(S.OmarId);
+
+        Assert.Equal(10, items.Count);
+        Assert.Null(cursor);
+    }
+
+    [Fact]
     public async Task GetById_is_forbidden_for_other_passengers_and_includes_the_line()
     {
         var report = await S.AddReportAsync(S.OmarId);

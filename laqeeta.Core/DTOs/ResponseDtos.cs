@@ -7,6 +7,8 @@ public record LostReportDto(
     string Color, DateOnly LostDate, TimeOnly? ApproximateTime, string? Direction, string Description,
     LostReportStatus Status, ClosureReason? ClosureReason, DateTime CreatedAt);
 
+public record LostReportPageDto(IReadOnlyList<LostReportDto> Items, string? NextCursor);
+
 /// <summary>What a passenger may see about a found item (no private identifying details).</summary>
 public record ItemPublicDto(
     long ItemId, ItemCategory Category, string Color, string Description, DateTime FoundAt,
