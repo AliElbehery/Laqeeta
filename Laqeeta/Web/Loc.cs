@@ -16,6 +16,7 @@ public interface ILoc
 
     /// <summary>UTC date-time -> local time text.</summary>
     string Dt(DateTime? utc);
+    string Dt(DateTimeOffset? utc);
 
     /// <summary>Business error (Err code) in the current language.</summary>
     string Error(DomainException ex);
@@ -43,7 +44,11 @@ public class Loc(IHttpContextAccessor accessor) : ILoc
         => this[$"{typeof(TEnum).Name}.{value}"];
 
     public string Dt(DateTime? utc)
-        => utc is null ? "—" : utc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+        => utc is null ? "—" : Dt(new DateTimeOffset(DateTime.SpecifyKind(utc.Value, DateTimeKind.Utc)));
+
+    public string Dt(DateTimeOffset? utc)
+        => utc is null ? "—" : TimeZoneInfo.ConvertTime(utc.Value, EgyptTimeZone.TimeZone)
+            .ToString("yyyy-MM-dd HH:mm");
 
     public string Error(DomainException ex) => Messages.Error(ex, Lang);
 
