@@ -19,7 +19,7 @@ public record CreateFoundItemDto(
     [Required, StringLength(50)] string Color,
     [Required, StringLength(2000)] string Description,
     [StringLength(2000)] string? PrivateIdentifyingDetails,
-    DateTime FoundAt);
+    DateTimeOffset FoundAt);
 
 public record VerifyClaimDto(bool Approve, bool IdChecked, bool SecretAnswerPassed, [StringLength(2000)] string? Notes);
 
