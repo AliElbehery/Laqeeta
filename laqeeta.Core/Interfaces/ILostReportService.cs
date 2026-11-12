@@ -11,10 +11,7 @@ public interface ILostReportService
 
     Task<(IReadOnlyList<LostReport> Items, LostReportCursor? NextCursor)> GetPageByUserAsync(
         long userId, LostReportCursor? after = null, CancellationToken ct = default);
-<<<<<<< HEAD
-=======
 
->>>>>>> 3243d7eab809891ff1b2f75e29287253a336a02b
     Task<LostReport> GetByIdAsync(long reportId, long userId, CancellationToken ct = default);
 
     Task CancelAsync(long reportId, long userId, CancellationToken ct = default);

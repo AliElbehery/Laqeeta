@@ -57,10 +57,7 @@ public class LostReportsController(ILostReportService reports, IMatchingService 
     [HttpGet("{id:long}/matches")]
     public async Task<ActionResult<IEnumerable<PassengerMatchDto>>> GetMatches(long id, CancellationToken ct)
         => Ok((await matching.GetForReportAsync(id, User.GetUserId(), ct)).Select(m => m.ToPassengerDto()));
-<<<<<<< HEAD
 
-=======
->>>>>>> 3243d7eab809891ff1b2f75e29287253a336a02b
 
     private static string EncodeCursor(LostReportCursor cursor)
     {
@@ -86,8 +83,5 @@ public class LostReportsController(ILostReportService reports, IMatchingService 
         after = new LostReportCursor(new DateTime(ticks, DateTimeKind.Utc), reportId);
         return true;
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 3243d7eab809891ff1b2f75e29287253a336a02b
+
