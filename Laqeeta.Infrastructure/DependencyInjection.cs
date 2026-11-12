@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<ILostReportRepository, LostReportRepository>();
         services.AddScoped<IFoundItemRepository, FoundItemRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IAdminRepository, AdminRepository>();
         services.AddScoped<IStationService, StationService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IMatchingService, MatchingService>();
