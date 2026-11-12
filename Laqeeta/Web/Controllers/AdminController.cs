@@ -1,32 +1,32 @@
+using Laqeeta.Core.DTOs;
+using Laqeeta.Core.Interfaces;
 using Laqeeta.Api.Web.Models;
-using Laqeeta.Core.Enums;
-using Laqeeta.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Laqeeta.Api.Web.Controllers;
 
 /// <summary>Global administration area. Every action requires the Admin role.</summary>
 [Route("admin")]
 [Authorize(Policy = "AdminOnly")]
-public class AdminController(AppDbContext db) : AppController
+public class AdminController(IAdminService adminService) : AppController
 {
     [HttpGet("")]
     public async Task<IActionResult> Index(CancellationToken ct)
     {
+        var dashboard = await adminService.GetDashboardAsync(ct);
         var vm = new AdminDashboardVm
         {
-            TotalEmployees = await db.Users.CountAsync(x => x.Role == UserRole.Employee, ct),
-            ActiveEmployees = await db.Users.CountAsync(x => x.Role == UserRole.Employee && x.IsActive, ct),
-            TotalPassengers = await db.Users.CountAsync(x => x.Role == UserRole.User, ct),
-            TotalStations = await db.Stations.CountAsync(ct),
-            TotalLostReports = await db.LostReports.CountAsync(ct),
-            OpenLostReports = await db.LostReports.CountAsync(x => x.Status == LostReportStatus.Open, ct),
-            TotalFoundItems = await db.FoundItems.CountAsync(ct),
-            ItemsInStorage = await db.FoundItems.CountAsync(x => x.ItemStatus == FoundItemStatus.InStorage, ct),
-            PendingClaims = await db.OwnershipClaims.CountAsync(x => x.ClaimStatus == ClaimStatus.Pending, ct),
-            SuggestedMatches = await db.PossibleMatches.CountAsync(x => x.MatchStatus == MatchStatus.Suggested, ct)
+            TotalEmployees = dashboard.TotalEmployees,
+            ActiveEmployees = dashboard.ActiveEmployees,
+            TotalPassengers = dashboard.TotalPassengers,
+            TotalStations = dashboard.TotalStations,
+            TotalLostReports = dashboard.TotalLostReports,
+            OpenLostReports = dashboard.OpenLostReports,
+            TotalFoundItems = dashboard.TotalFoundItems,
+            ItemsInStorage = dashboard.ItemsInStorage,
+            PendingClaims = dashboard.PendingClaims,
+            SuggestedMatches = dashboard.SuggestedMatches
         };
 
         return View(vm);
@@ -35,57 +35,44 @@ public class AdminController(AppDbContext db) : AppController
     [HttpGet("employees")]
     public async Task<IActionResult> Employees(string? search, CancellationToken ct)
     {
-        var query = db.Users.AsNoTracking()
-            .Where(x => x.Role == UserRole.Employee);
-
-        if (!string.IsNullOrWhiteSpace(search))
+        var employees = await adminService.GetEmployeesAsync(search, ct);
+        var vm = new AdminEmployeesVm
         {
-            var term = search.Trim();
-            query = query.Where(x => x.FullName.Contains(term)
-                || x.Username.Contains(term) || x.Email.Contains(term)
-                || (x.Station != null && x.Station.StationName.Contains(term)));
-        }
-
-        var employees = await query
-            .OrderBy(x => x.FullName)
-            .Select(x => new AdminEmployeeRowVm
+            Search = search,
+            Employees = employees.Select(x => new AdminEmployeeRowVm
             {
                 UserId = x.UserId,
                 FullName = x.FullName,
                 Username = x.Username,
                 Email = x.Email,
                 Phone = x.Phone,
-                StationName = x.Station == null ? null : x.Station.StationName,
+                StationName = x.StationName,
                 IsActive = x.IsActive,
                 CreatedAt = x.CreatedAt
-            })
-            .ToListAsync(ct);
+            }).ToList()
+        };
 
-        return View(new AdminEmployeesVm { Search = search, Employees = employees });
+        return View(vm);
     }
 
     [HttpPost("employees/{id:long}/toggle-active")]
     public async Task<IActionResult> ToggleEmployeeActive(long id, CancellationToken ct)
     {
-        if (id == UserId)
+        var result = await adminService.ToggleEmployeeActiveAsync(id, UserId, ct);
+
+        switch (result)
         {
-            Error("You cannot deactivate your own account.");
-            return RedirectToAction(nameof(Employees));
+            case ToggleEmployeeResult.CannotChangeOwnAccount:
+                Error("You cannot deactivate your own account.");
+                break;
+            case ToggleEmployeeResult.NotFound:
+                Error("Employee not found.");
+                break;
+            case ToggleEmployeeResult.Updated:
+                Success("Employee account status updated.");
+                break;
         }
 
-        var employee = await db.Users.FirstOrDefaultAsync(
-            x => x.UserId == id && x.Role == UserRole.Employee, ct);
-
-        if (employee is null)
-        {
-            Error("Employee not found.");
-            return RedirectToAction(nameof(Employees));
-        }
-
-        employee.IsActive = !employee.IsActive;
-        await db.SaveChangesAsync(ct);
-
-        Success(employee.IsActive ? "Employee account activated." : "Employee account deactivated.");
         return RedirectToAction(nameof(Employees));
     }
 }

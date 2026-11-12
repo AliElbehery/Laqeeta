@@ -12,6 +12,7 @@ public static class DependencyInjection
         services.AddScoped<ILostReportService, LostReportService>();
         services.AddScoped<IFoundItemService, FoundItemService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAdminService, AdminService>();
         return services;
     }
 }
