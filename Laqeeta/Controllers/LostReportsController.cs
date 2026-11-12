@@ -57,7 +57,10 @@ public class LostReportsController(ILostReportService reports, IMatchingService 
     [HttpGet("{id:long}/matches")]
     public async Task<ActionResult<IEnumerable<PassengerMatchDto>>> GetMatches(long id, CancellationToken ct)
         => Ok((await matching.GetForReportAsync(id, User.GetUserId(), ct)).Select(m => m.ToPassengerDto()));
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3243d7eab809891ff1b2f75e29287253a336a02b
 
     private static string EncodeCursor(LostReportCursor cursor)
     {
@@ -73,9 +76,7 @@ public class LostReportsController(ILostReportService reports, IMatchingService 
         Span<byte> bytes = stackalloc byte[2 * sizeof(long)];
         if (cursor is null || cursor.Length != Base64Url.GetEncodedLength(bytes.Length) ||
             !Base64Url.TryDecodeFromChars(cursor, bytes, out var written) || written != bytes.Length)
-        {
             return false;
-        }
 
         var ticks = BinaryPrimitives.ReadInt64BigEndian(bytes);
         var reportId = BinaryPrimitives.ReadInt64BigEndian(bytes[sizeof(long)..]);
@@ -85,4 +86,8 @@ public class LostReportsController(ILostReportService reports, IMatchingService 
         after = new LostReportCursor(new DateTime(ticks, DateTimeKind.Utc), reportId);
         return true;
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3243d7eab809891ff1b2f75e29287253a336a02b

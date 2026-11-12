@@ -1,6 +1,9 @@
+using System.Buffers.Binary;
+using System.Buffers.Text;
 using Laqeeta.Api.Web.Models;
 using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Interfaces;
+using Laqeeta.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +17,22 @@ public class ReportsController(
     IStationService stations, IAuthService auth) : AppController
 {
     [HttpGet("")]
-    public async Task<IActionResult> Index() => View(await reports.GetByUserAsync(UserId));
+    public async Task<IActionResult> Index([FromQuery] string? cursor, CancellationToken ct)
+    {
+        LostReportCursor? after = null;
+        if ((cursor is not null || Request.Query.ContainsKey(nameof(cursor))) && !TryDecodeCursor(cursor, out after))
+        {
+            Error("Invalid pagination cursor. Please open the reports page again.");
+            return RedirectToAction(nameof(Index));
+        }
+
+        var (items, nextCursor) = await reports.GetPageByUserAsync(UserId, after, ct);
+        return View(new ReportsIndexVm
+        {
+            Reports = items,
+            NextCursor = nextCursor is { } next ? EncodeCursor(next) : null
+        });
+    }
 
     [HttpGet("new")]
     public async Task<IActionResult> Create()
@@ -80,4 +98,29 @@ public class ReportsController(
     }
 
     private async Task LoadLinesAsync() => ViewData["Lines"] = await stations.GetLinesAsync();
+
+    private static string EncodeCursor(LostReportCursor cursor)
+    {
+        Span<byte> bytes = stackalloc byte[2 * sizeof(long)];
+        BinaryPrimitives.WriteInt64BigEndian(bytes, cursor.CreatedAt.Ticks);
+        BinaryPrimitives.WriteInt64BigEndian(bytes[sizeof(long)..], cursor.ReportId);
+        return Base64Url.EncodeToString(bytes);
+    }
+
+    private static bool TryDecodeCursor(string? cursor, out LostReportCursor? after)
+    {
+        after = null;
+        Span<byte> bytes = stackalloc byte[2 * sizeof(long)];
+        if (cursor is null || cursor.Length != Base64Url.GetEncodedLength(bytes.Length) ||
+            !Base64Url.TryDecodeFromChars(cursor, bytes, out var written) || written != bytes.Length)
+            return false;
+
+        var ticks = BinaryPrimitives.ReadInt64BigEndian(bytes);
+        var reportId = BinaryPrimitives.ReadInt64BigEndian(bytes[sizeof(long)..]);
+        if (ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks || reportId <= 0)
+            return false;
+
+        after = new LostReportCursor(new DateTime(ticks, DateTimeKind.Utc), reportId);
+        return true;
+    }
 }

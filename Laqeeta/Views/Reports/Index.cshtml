@@ -1,10 +1,10 @@
-@model IReadOnlyList<LostReport>
+@model ReportsIndexVm
 @{ ViewData["Title"] = L["nav.myReports"]; }
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0">@L["nav.myReports"]</h1>
     <a class="btn btn-primary" asp-action="Create">+ @L["nav.newReport"]</a>
 </div>
-@if (Model.Count == 0)
+@if (Model.Reports.Count == 0)
 {
     <div class="card"><div class="card-body text-center text-muted py-5">
         <div class="fs-1">📭</div>
@@ -15,7 +15,7 @@
 else
 {
     <div class="row g-3">
-    @foreach (var r in Model)
+    @foreach (var r in Model.Reports)
     {
         <div class="col-md-6 col-lg-4">
             <a class="text-decoration-none text-reset" asp-action="Details" asp-route-id="@r.ReportId">
@@ -30,4 +30,12 @@ else
         </div>
     }
     </div>
+    @if (Model.NextCursor is not null)
+    {
+        <nav class="d-flex justify-content-end mt-4" aria-label="Reports pagination">
+            <a class="btn btn-outline-primary" asp-action="Index" asp-route-cursor="@Model.NextCursor">
+                التقارير التالية <span aria-hidden="true">→</span>
+            </a>
+        </nav>
+    }
 }
