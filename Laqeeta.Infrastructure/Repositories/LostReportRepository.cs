@@ -19,12 +19,25 @@ public class LostReportRepository(AppDbContext db) : ILostReportRepository
     public async Task<IReadOnlyList<LostReport>> GetByUserAsync(
         long userId,
         CancellationToken ct = default)
-        => await db.LostReports
-            .AsNoTracking()
-            .Where(report => report.UserId == userId)
-            .Include(report => report.Line)
+        => await ReportsForUser(userId)
             .OrderByDescending(report => report.CreatedAt)
             .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<LostReport>> GetPageByUserAsync(
+        long userId, LostReportCursor? after, int limit, CancellationToken ct = default)
+    {
+        var query = ReportsForUser(userId);
+        if (after is { } cursor)
+        {
+            query = query.Where(report => report.CreatedAt < cursor.CreatedAt ||
+                (report.CreatedAt == cursor.CreatedAt && report.ReportId < cursor.ReportId));
+        }
+
+        return await query.OrderByDescending(report => report.CreatedAt)
+            .ThenByDescending(report => report.ReportId)
+            .Take(limit)
+            .ToListAsync(ct);
+    }
 
     public Task<LostReport?> GetByIdWithLineAsync(
         long reportId,
@@ -46,4 +59,9 @@ public class LostReportRepository(AppDbContext db) : ILostReportRepository
 
     public Task SaveChangesAsync(CancellationToken ct = default)
         => db.SaveChangesAsync(ct);
+
+    private IQueryable<LostReport> ReportsForUser(long userId)
+        => db.LostReports.AsNoTracking()
+            .Where(report => report.UserId == userId)
+            .Include(report => report.Line);
 }
