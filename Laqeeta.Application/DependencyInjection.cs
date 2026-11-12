@@ -1,6 +1,5 @@
 using Laqeeta.Application.Services;
 using Laqeeta.Core.Interfaces;
-using Laqeeta.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Laqeeta.Application;

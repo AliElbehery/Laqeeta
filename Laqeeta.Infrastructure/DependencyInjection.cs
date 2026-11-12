@@ -24,7 +24,6 @@ public static class DependencyInjection
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IMatchingService, MatchingService>();
         services.AddScoped<IClaimService, ClaimService>();
-        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }
