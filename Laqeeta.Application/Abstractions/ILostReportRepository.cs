@@ -15,12 +15,9 @@ public interface ILostReportRepository
     Task AddAsync(LostReport report, CancellationToken ct = default);
 
     Task<IReadOnlyList<LostReport>> GetByUserAsync(long userId, CancellationToken ct = default);
-<<<<<<< HEAD
 
-=======
     Task<IReadOnlyList<LostReport>> GetPageByUserAsync(
         long userId, LostReportCursor? after, int limit, CancellationToken ct = default);
->>>>>>> e2f7b660563f124ae3d557ed30a57e6a0b59274e
     Task<LostReport?> GetByIdWithLineAsync(long reportId, CancellationToken ct = default);
 
     Task<LostReport?> GetForCancellationAsync(long reportId, CancellationToken ct = default);
