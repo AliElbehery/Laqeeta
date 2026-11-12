@@ -57,8 +57,8 @@ namespace Laqeeta.Infrastructure.Data.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("description");
 
-                    b.Property<DateTime>("FoundAt")
-                        .HasColumnType("datetime2")
+                    b.Property<DateTimeOffset>("FoundAt")
+                        .HasColumnType("datetimeoffset")
                         .HasColumnName("found_at");
 
                     b.Property<long>("FoundStationId")
