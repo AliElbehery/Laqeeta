@@ -50,11 +50,14 @@ public sealed class MatchingRepository(AppDbContext db) : IMatchingRepository
     public Task<User?> GetUserAsync(long id, CancellationToken ct)
         => db.Users.FirstOrDefaultAsync(u => u.UserId == id, ct);
     public Task<PossibleMatch?> GetMatchForUpdateAsync(long id, CancellationToken ct)
-        => db.PossibleMatches.Include(m => m.Report)
-            .Include(m => m.Item).ThenInclude(i => i.CurrentStation)
+        => db.PossibleMatches.Include(m => m.Report).Include(m => m.Item).ThenInclude(i => i.CurrentStation)
             .FirstOrDefaultAsync(m => m.MatchId == id, ct);
     public void MarkMatchStatusModified(PossibleMatch match)
         => db.Entry(match).Property(m => m.MatchStatus).IsModified = true;
-    public Task SaveChangesAsync(CancellationToken ct) => db.SaveChangesAsync(ct);
+    public async Task SaveChangesAsync(CancellationToken ct)
+    {
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException ex) { throw new MatchingPairConflictException(ex); }
+    }
     public void ClearTracking() => db.ChangeTracker.Clear();
 }
