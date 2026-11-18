@@ -112,10 +112,10 @@ public sealed class Scenario : IDisposable
 
     public AuthService Auth() => new(new UserRepository(NewDb(), new FakeTokenService()));
 
-    public LostReportService Reports()
+    public LostReportService Reports(TimeProvider? timeProvider = null)
     {
         var db = NewDb();
-        return new LostReportService(new LostReportRepository(db), new MatchingService(new MatchingRepository(db)));
+        return new LostReportService(new LostReportRepository(db), new MatchingService(new MatchingRepository(db)), timeProvider);
     }
 
     public FoundItemService Items()

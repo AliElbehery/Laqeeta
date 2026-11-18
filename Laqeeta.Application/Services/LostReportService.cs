@@ -5,12 +5,14 @@ using Laqeeta.Core.Exceptions;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Localization;
 using Laqeeta.Core.Models;
+using Laqeeta.Core.Time;
 
 namespace Laqeeta.Application.Services;
 
 public class LostReportService(
     ILostReportRepository repository,
-    IMatchingService matching) : ILostReportService
+    IMatchingService matching,
+    TimeProvider? timeProvider = null) : ILostReportService
 {
     public async Task<LostReport> CreateAsync(
         long userId,
@@ -26,7 +28,8 @@ public class LostReportService(
         if (!await repository.MetroLineExistsAsync(dto.LineId, ct))
             throw new NotFoundException("Metro line not found.", Err.LineNotFound);
 
-        if (dto.LostDate > DateOnly.FromDateTime(DateTime.UtcNow.AddDays(1)))
+        var egyptToday = EgyptTimeZone.ToLocalDate((timeProvider ?? TimeProvider.System).GetUtcNow());
+        if (dto.LostDate > egyptToday.AddDays(1))
             throw new BusinessRuleException("Lost date cannot be in the future.", Err.LostDateFuture);
 
         var report = new LostReport
