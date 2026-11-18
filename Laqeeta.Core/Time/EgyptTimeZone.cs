@@ -1,15 +1,14 @@
-namespace Laqeeta.Api.Web;
+namespace Laqeeta.Core.Time;
 
-/// <summary>
-/// Converts local date/time input from the Egypt metro operating context to UTC.
-/// HTML datetime-local values have no offset, so they must not be interpreted using the server timezone.
-/// </summary>
 public static class EgyptTimeZone
 {
     public static TimeZoneInfo TimeZone { get; } = ResolveTimeZone();
 
     public static DateTime ToLocalDateTime(DateTimeOffset utc)
         => TimeZoneInfo.ConvertTime(utc, TimeZone).DateTime;
+
+    public static DateOnly ToLocalDate(DateTimeOffset utc)
+        => DateOnly.FromDateTime(ToLocalDateTime(utc));
 
     public static bool TryConvertLocalToUtc(DateTime localDateTime, out DateTimeOffset utc)
     {

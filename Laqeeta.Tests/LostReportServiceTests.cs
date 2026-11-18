@@ -9,6 +9,11 @@ public class LostReportServiceTests : IDisposable
 {
     private readonly Scenario S = new();
 
+    private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => utcNow;
+    }
+
     public void Dispose() => S.Dispose();
 
     private CreateLostReportDto Dto(long? lineId = null, string color = "Black", DateOnly? lostDate = null)
@@ -48,6 +53,22 @@ public class LostReportServiceTests : IDisposable
     public async Task Create_rejects_a_future_lost_date()
         => await Assert.ThrowsAsync<BusinessRuleException>(() =>
             S.Reports().CreateAsync(S.OmarId, Dto(lostDate: DateOnly.FromDateTime(DateTime.UtcNow.AddDays(3)))));
+
+    [Fact]
+    public async Task Create_validates_future_dates_against_the_egypt_day_across_utc_midnight()
+    {
+        var beforeEgyptMidnight = S.Reports(new FixedTimeProvider(
+            new DateTimeOffset(2026, 1, 15, 21, 59, 0, TimeSpan.Zero)));
+        await beforeEgyptMidnight.CreateAsync(S.OmarId, Dto(lostDate: new DateOnly(2026, 1, 16)));
+        await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            beforeEgyptMidnight.CreateAsync(S.OmarId, Dto(lostDate: new DateOnly(2026, 1, 17))));
+
+        var afterEgyptMidnight = S.Reports(new FixedTimeProvider(
+            new DateTimeOffset(2026, 1, 15, 22, 0, 0, TimeSpan.Zero)));
+        await afterEgyptMidnight.CreateAsync(S.OmarId, Dto(lostDate: new DateOnly(2026, 1, 17)));
+        await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            afterEgyptMidnight.CreateAsync(S.OmarId, Dto(lostDate: new DateOnly(2026, 1, 18))));
+    }
 
     [Fact]
     public async Task Create_rejects_disabled_and_unknown_users()
