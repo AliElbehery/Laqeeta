@@ -84,7 +84,7 @@ public class ConcurrencyTests : IDisposable
         slowRequest.BeforeNextSave = () => S.Claims().VerifyAsync(
             claim.ClaimId, S.EmpSadatId, new VerifyClaimDto(false, true, false, "rejected first"));
 
-        await Assert.ThrowsAsync<ConflictException>(() => new ClaimService(slowRequest).VerifyAsync(
+        await Assert.ThrowsAsync<ConflictException>(() => new ClaimService(new ClaimRepository(slowRequest)).VerifyAsync(
             claim.ClaimId, S.EmpSadatId, new VerifyClaimDto(true, true, true, null)));
 
         var saved = await S.Read(db => db.OwnershipClaims.SingleAsync(c => c.ClaimId == claim.ClaimId));
@@ -102,7 +102,7 @@ public class ConcurrencyTests : IDisposable
         using var slowRequest = S.NewDb();
         slowRequest.BeforeNextSave = () => S.Matching().GenerateForReportAsync(report.ReportId);   // creates the pair first
 
-        var created = await new MatchingService(slowRequest).GenerateForItemAsync(item.ItemId);    // must not throw
+        var created = await new MatchingService(new MatchingRepository(slowRequest)).GenerateForItemAsync(item.ItemId);    // must not throw
 
         Assert.Empty(created);
         Assert.Equal(1, await S.Read(db => db.PossibleMatches.CountAsync()));
