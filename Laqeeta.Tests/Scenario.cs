@@ -45,6 +45,15 @@ public class SqliteAppDbContext(DbContextOptions<AppDbContext> options) : AppDbC
                 if (property.FindAnnotation(RelationalAnnotationNames.ColumnType) is not null)
                     property.SetColumnType(null);
             }
+
+        // SQLite cannot translate relational comparisons over DateTimeOffset.
+        // Store FoundAt as UTC ticks in this test-only model so the production
+        // matching query (FoundAt >= lostFrom) is translated and tested faithfully.
+        modelBuilder.Entity<FoundItem>()
+            .Property(item => item.FoundAt)
+            .HasConversion(
+                value => value.UtcDateTime.Ticks,
+                ticks => new DateTimeOffset(ticks, TimeSpan.Zero));
     }
 }
 
