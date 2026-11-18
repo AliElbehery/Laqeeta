@@ -9,7 +9,24 @@ namespace Laqeeta.Application.Services;
 
 public sealed class MatchingService(IMatchingRepository repository) : IMatchingService
 {
-    public async Task<IReadOnlyList<PossibleMatch>> GenerateForReportAsync(long reportId, CancellationToken ct = default)
+    public Task<IReadOnlyList<PossibleMatch>> GenerateForReportAsync(long reportId, CancellationToken ct = default)
+        => RetryOnceIfPairAlreadyExistsAsync(() => GenerateForReportCoreAsync(reportId, ct));
+
+    public Task<IReadOnlyList<PossibleMatch>> GenerateForItemAsync(long itemId, CancellationToken ct = default)
+        => RetryOnceIfPairAlreadyExistsAsync(() => GenerateForItemCoreAsync(itemId, ct));
+
+    private async Task<IReadOnlyList<PossibleMatch>> RetryOnceIfPairAlreadyExistsAsync(
+        Func<Task<IReadOnlyList<PossibleMatch>>> generate)
+    {
+        try { return await generate(); }
+        catch (MatchingPairConflictException)
+        {
+            repository.ClearTracking();
+            return await generate();
+        }
+    }
+
+    private async Task<IReadOnlyList<PossibleMatch>> GenerateForReportCoreAsync(long reportId, CancellationToken ct)
     {
         var report = await repository.GetReportAsync(reportId, ct)
             ?? throw new NotFoundException($"Report {reportId} not found.", Err.ReportNotFound);
@@ -33,7 +50,7 @@ public sealed class MatchingService(IMatchingRepository repository) : IMatchingS
         return created;
     }
 
-    public async Task<IReadOnlyList<PossibleMatch>> GenerateForItemAsync(long itemId, CancellationToken ct = default)
+    private async Task<IReadOnlyList<PossibleMatch>> GenerateForItemCoreAsync(long itemId, CancellationToken ct)
     {
         var item = await repository.GetItemWithStationAsync(itemId, ct)
             ?? throw new NotFoundException($"Item {itemId} not found.", Err.ItemNotFound);
