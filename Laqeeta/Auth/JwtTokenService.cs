@@ -20,7 +20,8 @@ public class JwtTokenService(IOptions<JwtOptions> options) : ITokenService
         {
             [ClaimNames.UserId] = user.UserId.ToString(),
             [ClaimNames.Name] = user.Username,
-            [ClaimNames.Role] = user.Role.ToString()
+            [ClaimNames.Role] = user.Role.ToString(),
+            [ClaimNames.SecurityStamp] = user.SecurityStamp.ToString()
         };
         if (user.StationId is not null)
             claims[ClaimNames.StationId] = user.StationId.Value.ToString();

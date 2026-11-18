@@ -124,6 +124,7 @@ public class AccountController(IAuthService auth) : AppController
             new(ClaimNames.UserId, u.UserId.ToString()),
             new(ClaimNames.Name, u.Username),
             new(ClaimNames.Role, u.Role.ToString()),
+            new(ClaimNames.SecurityStamp, u.SecurityStamp.ToString()),
             new("full_name", u.FullName)
         };
         if (u.StationId is long sid) claims.Add(new Claim(ClaimNames.StationId, sid.ToString()));

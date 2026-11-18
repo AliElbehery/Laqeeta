@@ -1,5 +1,6 @@
 using Laqeeta.Core.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Laqeeta.Core.DTOs;
 
@@ -28,6 +29,10 @@ public record CreateEmployeeDto(
     [Range(1, long.MaxValue)] long StationId);
 
 public record UserDto(long UserId, string FullName, string Username, string Email, string Phone,
-                      UserRole Role, long? StationId);
+                      UserRole Role, long? StationId)
+{
+    [JsonIgnore]
+    public Guid SecurityStamp { get; init; }
+}
 
 public record AuthResultDto(string Token, DateTime ExpiresAt, UserDto User);

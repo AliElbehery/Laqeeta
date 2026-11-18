@@ -10,6 +10,7 @@ public static class ClaimNames
     public const string Name = "name";
     public const string Role = "role";
     public const string StationId = "station_id";
+    public const string SecurityStamp = "security_stamp";
 }
 
 public static class ClaimsPrincipalExtensions

@@ -2,7 +2,9 @@ using Laqeeta.Core.DTOs;
 using Laqeeta.Core.Enums;
 using Laqeeta.Core.Exceptions;
 using Laqeeta.Core.Localization;
+using Laqeeta.Api.Auth;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Laqeeta.Tests;
 
@@ -97,11 +99,61 @@ public class AuthServiceTests : IDisposable
     public async Task ChangePassword_replaces_the_password()
     {
         var registered = await S.Auth().RegisterAsync(Reg());
+        var oldStamp = await S.Read(db => db.Users.Where(u => u.UserId == registered.User.UserId)
+            .Select(u => u.SecurityStamp).SingleAsync());
 
         await S.Auth().ChangePasswordAsync(registered.User.UserId, new ChangePasswordDto("Passw0rd!", "NewPassw0rd!"));
 
+        var newStamp = await S.Read(db => db.Users.Where(u => u.UserId == registered.User.UserId)
+            .Select(u => u.SecurityStamp).SingleAsync());
+        Assert.NotEqual(oldStamp, newStamp);
         await Assert.ThrowsAsync<UnauthorizedException>(() => S.Auth().LoginAsync(new LoginDto("ali", "Passw0rd!")));
         await S.Auth().LoginAsync(new LoginDto("ali", "NewPassw0rd!"));
+    }
+
+    [Fact]
+    public async Task ChangePassword_invalidates_old_sessions_and_allows_a_new_session()
+    {
+        var registered = await S.Auth().RegisterAsync(Reg());
+        var oldPrincipal = Principal(registered.User.UserId, registered.User.Role.ToString(),
+            registered.User.SecurityStamp);
+
+        using (var db = S.NewDb())
+            Assert.True(await SessionStampValidator.IsValidAsync(oldPrincipal, db));
+
+        await S.Auth().ChangePasswordAsync(registered.User.UserId,
+            new ChangePasswordDto("Passw0rd!", "NewPassw0rd!"));
+
+        using (var db = S.NewDb())
+            Assert.False(await SessionStampValidator.IsValidAsync(oldPrincipal, db));
+
+        var loggedIn = await S.Auth().LoginAsync(new LoginDto("ali", "NewPassw0rd!"));
+        var newPrincipal = Principal(loggedIn.User.UserId, loggedIn.User.Role.ToString(),
+            loggedIn.User.SecurityStamp);
+        using (var db = S.NewDb())
+            Assert.True(await SessionStampValidator.IsValidAsync(newPrincipal, db));
+    }
+
+    [Fact]
+    public async Task ChangePassword_invalidates_legacy_sessions_without_a_stamp()
+    {
+        var registered = await S.Auth().RegisterAsync(Reg());
+        using (var db = S.NewDb())
+        {
+            var user = await db.Users.SingleAsync(u => u.UserId == registered.User.UserId);
+            user.SecurityStamp = Guid.Empty;
+            await db.SaveChangesAsync();
+        }
+
+        var legacyPrincipal = Principal(registered.User.UserId, registered.User.Role.ToString(), null);
+        using (var db = S.NewDb())
+            Assert.True(await SessionStampValidator.IsValidAsync(legacyPrincipal, db));
+
+        await S.Auth().ChangePasswordAsync(registered.User.UserId,
+            new ChangePasswordDto("Passw0rd!", "NewPassw0rd!"));
+
+        using (var db = S.NewDb())
+            Assert.False(await SessionStampValidator.IsValidAsync(legacyPrincipal, db));
     }
 
     [Fact]
@@ -109,11 +161,17 @@ public class AuthServiceTests : IDisposable
     {
         var registered = await S.Auth().RegisterAsync(Reg());
         var id = registered.User.UserId;
+        var originalStamp = await S.Read(db => db.Users.Where(u => u.UserId == id)
+            .Select(u => u.SecurityStamp).SingleAsync());
 
         await Assert.ThrowsAsync<UnauthorizedException>(() => S.Auth().ChangePasswordAsync(id, new ChangePasswordDto("wrong", "NewPassw0rd!")));
         await Assert.ThrowsAsync<BusinessRuleException>(() => S.Auth().ChangePasswordAsync(id, new ChangePasswordDto("Passw0rd!", "weak")));
         await Assert.ThrowsAsync<BusinessRuleException>(() => S.Auth().ChangePasswordAsync(id, new ChangePasswordDto("Passw0rd!", "Passw0rd!")));
         await Assert.ThrowsAsync<NotFoundException>(() => S.Auth().ChangePasswordAsync(999, new ChangePasswordDto("a", "NewPassw0rd!")));
+
+        var finalStamp = await S.Read(db => db.Users.Where(u => u.UserId == id)
+            .Select(u => u.SecurityStamp).SingleAsync());
+        Assert.Equal(originalStamp, finalStamp);
     }
 
     // ------------------------------------------------------------ Employees / profile
@@ -144,5 +202,18 @@ public class AuthServiceTests : IDisposable
         Assert.Equal("omar", profile.Username);
 
         await Assert.ThrowsAsync<NotFoundException>(() => S.Auth().GetProfileAsync(999));
+    }
+
+    private static ClaimsPrincipal Principal(long userId, string role, Guid? securityStamp)
+    {
+        var claims = new List<Claim>
+        {
+            new(ClaimNames.UserId, userId.ToString()),
+            new(ClaimNames.Role, role)
+        };
+        if (securityStamp is Guid stamp)
+            claims.Add(new Claim(ClaimNames.SecurityStamp, stamp.ToString()));
+
+        return new ClaimsPrincipal(new ClaimsIdentity(claims, "test"));
     }
 }

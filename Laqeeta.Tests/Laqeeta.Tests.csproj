@@ -28,4 +28,8 @@
     <ProjectReference Include="..\Laqeeta.Application\Laqeeta.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Laqeeta\Laqeeta.csproj" />
+  </ItemGroup>
+
 </Project>
