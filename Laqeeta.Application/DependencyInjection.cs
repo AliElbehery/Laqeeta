@@ -12,6 +12,10 @@ public static class DependencyInjection
         services.AddScoped<IFoundItemService, FoundItemService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<IMatchingService, MatchingService>();
+        services.AddScoped<IClaimService, ClaimService>();
+        services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IStationService, StationService>();
         return services;
     }
 }
