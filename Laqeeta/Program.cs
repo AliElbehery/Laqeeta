@@ -54,21 +54,12 @@ builder.Services
         o.Cookie.SameSite = SameSiteMode.Lax;
         o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         // Re-check account status on every cookie-authenticated request so a disabled
-        // employee/admin cannot keep using an already-issued browser session.
+        // employee/admin or a session issued before a password change cannot keep using it.
         o.Events.OnValidatePrincipal = async context =>
         {
-            var userIdValue = context.Principal?.FindFirst(ClaimNames.UserId)?.Value;
-            var role = context.Principal?.FindFirst(ClaimNames.Role)?.Value;
-            if (!long.TryParse(userIdValue, out var userId) || string.IsNullOrWhiteSpace(role))
-            {
-                context.RejectPrincipal();
-                await context.HttpContext.SignOutAsync(WebAuth.Scheme);
-                return;
-            }
-
             var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
-            var isValid = await db.Users.AsNoTracking().AnyAsync(
-                user => user.UserId == userId && user.IsActive && user.Role.ToString() == role);
+            var isValid = await SessionStampValidator.IsValidAsync(
+                context.Principal, db, context.HttpContext.RequestAborted);
             if (!isValid)
             {
                 context.RejectPrincipal();
@@ -82,18 +73,11 @@ builder.Services
         // Reject already-issued API tokens when an account is disabled or its role changes.
         o.Events.OnTokenValidated = async context =>
         {
-            var userIdValue = context.Principal?.FindFirst(ClaimNames.UserId)?.Value;
-            var role = context.Principal?.FindFirst(ClaimNames.Role)?.Value;
-            if (!long.TryParse(userIdValue, out var userId) || string.IsNullOrWhiteSpace(role))
-            {
-                context.Fail("Invalid account claims.");
-                return;
-            }
-
             var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
-            var isValid = await db.Users.AsNoTracking().AnyAsync(
-                user => user.UserId == userId && user.IsActive && user.Role.ToString() == role);
-            if (!isValid) context.Fail("Account is inactive or its role has changed.");
+            var isValid = await SessionStampValidator.IsValidAsync(
+                context.Principal, db, context.HttpContext.RequestAborted);
+            if (!isValid)
+                context.Fail("Account is inactive, its role has changed, or its password was changed.");
         };
         o.TokenValidationParameters = new TokenValidationParameters
         {

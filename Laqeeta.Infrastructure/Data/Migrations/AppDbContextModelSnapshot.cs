@@ -537,6 +537,10 @@ namespace Laqeeta.Infrastructure.Data.Migrations
                         .HasDefaultValue("User")
                         .HasColumnName("role");
 
+                    b.Property<Guid>("SecurityStamp")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("security_stamp");
+
                     b.Property<long?>("StationId")
                         .HasColumnType("bigint")
                         .HasColumnName("station_id");
