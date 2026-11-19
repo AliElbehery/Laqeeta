@@ -132,10 +132,7 @@ The application reads ConnectionStrings:DefaultConnection. The checked-in appset
 
 The application requires a JWT signing key of at least 32 characters and intentionally leaves the checked-in key empty. Configure a private key before starting the application:
 
-~~~bash
-dotnet user-secrets init --project Laqeeta
-dotnet user-secrets set "Jwt:Key" "<your-random-secret-of-at-least-32-characters>" --project Laqeeta
-~~~
+
 
 Do not commit real secrets to source control. Environment-variable equivalents use double underscores, for example Jwt__Key and ConnectionStrings__DefaultConnection.
 
@@ -145,13 +142,7 @@ In Development only, the startup seeder creates an administrator if no administr
 
 Configure the values with user-secrets:
 
-~~~bash
-dotnet user-secrets set "AdminSeed:Username" "admin" --project Laqeeta
-dotnet user-secrets set "AdminSeed:Email" "admin@example.com" --project Laqeeta
-dotnet user-secrets set "AdminSeed:Password" "<strong-password>" --project Laqeeta
-dotnet user-secrets set "AdminSeed:FullName" "Laqeeta Admin" --project Laqeeta
-dotnet user-secrets set "AdminSeed:Phone" "<phone-number>" --project Laqeeta
-~~~
+
 
 The configured password must be at least 8 characters and contain a letter and a digit. Keep these values private.
 
