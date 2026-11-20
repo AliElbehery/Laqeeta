@@ -17,7 +17,7 @@ public sealed class ClaimRepository(AppDbContext db) : IClaimRepository
     public async Task SaveClaimAsync(CancellationToken ct)
     {
         try { await db.SaveChangesAsync(ct); }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex))
         { throw new BusinessRuleException("A claim already exists for this match.", Err.ClaimExists); }
     }
     public Task<User?> GetUserAsync(long id, CancellationToken ct) => db.Users.FirstOrDefaultAsync(u => u.UserId == id, ct);

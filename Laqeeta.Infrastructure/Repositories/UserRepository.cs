@@ -88,7 +88,6 @@ namespace Laqeeta.Infrastructure.Repositories
                 throw new BusinessRuleException("New password must be different from the current one.", Err.PasswordSame);
 
             user.PasswordHash = Hasher.HashPassword(user, dto.NewPassword);
-            user.SecurityStamp = Guid.NewGuid();
             await _db.SaveChangesAsync(ct);
         }
         private async Task<User> CreateUserAsync(string fullName, string username, string email, string phone,
@@ -120,7 +119,7 @@ namespace Laqeeta.Infrastructure.Repositories
             {
                 await _db.SaveChangesAsync(ct);
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex))
             {
                 // unique index hit by a concurrent request
                 throw new ConflictException("Username or email is already registered.", Err.UserExists);
@@ -141,9 +140,6 @@ namespace Laqeeta.Infrastructure.Repositories
         }
 
         private static UserDto ToDto(User u)
-            => new(u.UserId, u.FullName, u.Username, u.Email, u.Phone, u.Role, u.StationId)
-            {
-                SecurityStamp = u.SecurityStamp
-            };
+            => new(u.UserId, u.FullName, u.Username, u.Email, u.Phone, u.Role, u.StationId);
     }
 }

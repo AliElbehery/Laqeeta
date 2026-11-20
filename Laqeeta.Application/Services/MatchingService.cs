@@ -4,6 +4,7 @@ using Laqeeta.Core.Exceptions;
 using Laqeeta.Core.Interfaces;
 using Laqeeta.Core.Localization;
 using Laqeeta.Core.Models;
+using Laqeeta.Core.Time;
 
 namespace Laqeeta.Application.Services;
 
@@ -32,9 +33,8 @@ public sealed class MatchingService(IMatchingRepository repository) : IMatchingS
             ?? throw new NotFoundException($"Report {reportId} not found.", Err.ReportNotFound);
         if (report.Status == LostReportStatus.Closed) return Array.Empty<PossibleMatch>();
 
-        var local = report.LostDate.ToDateTime(TimeOnly.MinValue);
-        var utc = TimeZoneInfo.ConvertTimeToUtc(local, EgyptTimeZone);
-        var lostFrom = new DateTimeOffset(utc, TimeSpan.Zero);
+        // the lost day starts at 00:00 Cairo (01:00 on the day the clocks go forward): never throws
+        var lostFrom = EgyptTime.StartOfDayUtc(report.LostDate);
         var items = await repository.GetCandidatesForReportAsync(report, lostFrom, ct);
         var created = new List<PossibleMatch>();
         foreach (var item in items)
@@ -56,8 +56,7 @@ public sealed class MatchingService(IMatchingRepository repository) : IMatchingS
             ?? throw new NotFoundException($"Item {itemId} not found.", Err.ItemNotFound);
         if (item.ItemStatus != FoundItemStatus.InStorage) return Array.Empty<PossibleMatch>();
         var lineIds = item.FoundStation.StationLines.Select(x => x.LineId).ToArray();
-        var foundAtEgypt = TimeZoneInfo.ConvertTime(item.FoundAt, EgyptTimeZone);
-        var foundDate = DateOnly.FromDateTime(foundAtEgypt.DateTime);
+        var foundDate = EgyptTime.DateOf(item.FoundAt);
         var reports = await repository.GetCandidatesForItemAsync(item, lineIds, foundDate, ct);
         var created = new List<PossibleMatch>();
         foreach (var report in reports)
@@ -137,11 +136,4 @@ public sealed class MatchingService(IMatchingRepository repository) : IMatchingS
         LostReport report, PossibleMatch match, string code, string? param = null)
         => new() { UserId = userId, Type = type, Title = title, Message = message,
             Report = report, Match = match, Code = code, Param = param };
-
-    private static readonly TimeZoneInfo EgyptTimeZone = FindEgyptTimeZone();
-    private static TimeZoneInfo FindEgyptTimeZone()
-    {
-        try { return TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo"); }
-        catch (TimeZoneNotFoundException) { return TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time"); }
-    }
 }

@@ -10,9 +10,11 @@ public class HomeController : AppController
     public IActionResult Index()
     {
         if (User.Identity?.IsAuthenticated == true)
+        {
             if (User.IsInRole("Admin")) return RedirectToAction("Index", "Admin");
             if (User.IsInRole("Employee")) return RedirectToAction("Index", "Staff");
             return RedirectToAction("Index", "Reports");
+        }
         return View();
     }
 

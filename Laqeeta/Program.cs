@@ -54,12 +54,21 @@ builder.Services
         o.Cookie.SameSite = SameSiteMode.Lax;
         o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         // Re-check account status on every cookie-authenticated request so a disabled
-        // employee/admin or a session issued before a password change cannot keep using it.
+        // employee/admin cannot keep using an already-issued browser session.
         o.Events.OnValidatePrincipal = async context =>
         {
+            var userIdValue = context.Principal?.FindFirst(ClaimNames.UserId)?.Value;
+            var role = context.Principal?.FindFirst(ClaimNames.Role)?.Value;
+            if (!long.TryParse(userIdValue, out var userId) || string.IsNullOrWhiteSpace(role))
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(WebAuth.Scheme);
+                return;
+            }
+
             var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
-            var isValid = await SessionStampValidator.IsValidAsync(
-                context.Principal, db, context.HttpContext.RequestAborted);
+            var isValid = await db.Users.AsNoTracking().AnyAsync(
+                user => user.UserId == userId && user.IsActive && user.Role.ToString() == role);
             if (!isValid)
             {
                 context.RejectPrincipal();
@@ -73,11 +82,18 @@ builder.Services
         // Reject already-issued API tokens when an account is disabled or its role changes.
         o.Events.OnTokenValidated = async context =>
         {
+            var userIdValue = context.Principal?.FindFirst(ClaimNames.UserId)?.Value;
+            var role = context.Principal?.FindFirst(ClaimNames.Role)?.Value;
+            if (!long.TryParse(userIdValue, out var userId) || string.IsNullOrWhiteSpace(role))
+            {
+                context.Fail("Invalid account claims.");
+                return;
+            }
+
             var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
-            var isValid = await SessionStampValidator.IsValidAsync(
-                context.Principal, db, context.HttpContext.RequestAborted);
-            if (!isValid)
-                context.Fail("Account is inactive, its role has changed, or its password was changed.");
+            var isValid = await db.Users.AsNoTracking().AnyAsync(
+                user => user.UserId == userId && user.IsActive && user.Role.ToString() == role);
+            if (!isValid) context.Fail("Account is inactive or its role has changed.");
         };
         o.TokenValidationParameters = new TokenValidationParameters
         {
@@ -132,6 +148,7 @@ builder.Services.AddSwaggerGen(o =>
 });
 
 var app = builder.Build();
+_ = Laqeeta.Core.Time.EgyptTime.Zone;   // fail at startup if the Egypt time zone is missing (e.g. no tzdata in the container)
 
 if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/error");

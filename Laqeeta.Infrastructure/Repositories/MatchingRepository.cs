@@ -57,7 +57,7 @@ public sealed class MatchingRepository(AppDbContext db) : IMatchingRepository
     public async Task SaveChangesAsync(CancellationToken ct)
     {
         try { await db.SaveChangesAsync(ct); }
-        catch (DbUpdateException ex) { throw new MatchingPairConflictException(ex); }
+        catch (DbUpdateException ex) when (DbErrors.IsUniqueViolation(ex)) { throw new MatchingPairConflictException(ex); }
     }
     public void ClearTracking() => db.ChangeTracker.Clear();
 }
